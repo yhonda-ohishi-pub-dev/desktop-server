@@ -836,8 +836,8 @@ github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtX
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/yhonda-ohishi/db_service v0.0.0-20251018144613-31c1a23634b8 h1:jyaqGTsa56qyANzeGtKAFe9GH3gjzxj7f4Tz8Ubla1s=
 github.com/yhonda-ohishi/db_service v0.0.0-20251018144613-31c1a23634b8/go.mod h1:+DGmQAgb5U1bgW9BkcOIKbUh1sNWzw3H+Uz/CtBaRrw=
-github.com/yhonda-ohishi/etc_data_processor v0.0.0-20250928124809-5be81bbd1bff h1:8niMYL+8NWrXXVHWHbxiIoEdZE2JSEOHDM2Irlt9iYw=
-github.com/yhonda-ohishi/etc_data_processor v0.0.0-20250928124809-5be81bbd1bff/go.mod h1:+KiH6c0dXPaPQNmZBYR2iIcMQX7dMcDtaKR6SzTBiPM=
+github.com/yhonda-ohishi/etc_data_processor v1.0.0 h1:R2FVdOJCQYSfiCeOUK0H90YeAVJUMmubbPLdjQdpKF0=
+github.com/yhonda-ohishi/etc_data_processor v1.0.0/go.mod h1:I7bMD+IO4/bxjiVv/uu64bxCt8UYlsUPnQQS/Fqk460=
 github.com/yhonda-ohishi/etc_meisai_scraper v0.0.22 h1:3O9FxleKnqZGmQvz6oG/CiDNf305+JAc0H3VTZnlrCo=
 github.com/yhonda-ohishi/etc_meisai_scraper v0.0.22/go.mod h1:O5S3GraW7VeCsF9oct/WD/3lY6FiY6j0Hjk234fp7EQ=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

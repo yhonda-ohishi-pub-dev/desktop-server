@@ -12,7 +12,7 @@ require (
 	google.golang.org/protobuf v1.36.10
 )
 
-require github.com/yhonda-ohishi/etc_data_processor v0.0.0-20250928124809-5be81bbd1bff
+require github.com/yhonda-ohishi/etc_data_processor v1.0.0
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
