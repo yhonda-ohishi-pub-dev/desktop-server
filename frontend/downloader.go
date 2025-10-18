@@ -13,6 +13,7 @@ import (
 const (
 	FrontendRepo    = "yhonda-ohishi/desktop-server-front"
 	FrontendDistDir = "frontend/dist"
+	FrontendVersion = "v1.0.0" // Current frontend version
 )
 
 // DownloadLatestRelease downloads the latest frontend release from GitHub

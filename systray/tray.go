@@ -22,12 +22,20 @@ func onReady(ctx context.Context, onExit func()) func() {
 		// Set icon, title and tooltip
 		systray.SetIcon(getIcon())
 		systray.SetTitle("DS")
-		systray.SetTooltip("Desktop Server - Running on localhost:8080")
+		systray.SetTooltip(fmt.Sprintf("Desktop Server %s - Running on localhost:8080", updater.CurrentVersion))
 
 		// Add menu items
 		mOpen := systray.AddMenuItem("Open App", "Open in browser")
 		systray.AddSeparator()
-		mCheckUpdate := systray.AddMenuItem("Check for Updates", "Check for new backend version")
+
+		// Version info (disabled menu items)
+		mBackendVersion := systray.AddMenuItem(fmt.Sprintf("Backend: %s", updater.CurrentVersion), "Current backend version")
+		mBackendVersion.Disable()
+		mFrontendVersion := systray.AddMenuItem(fmt.Sprintf("Frontend: %s", frontend.FrontendVersion), "Current frontend version")
+		mFrontendVersion.Disable()
+		systray.AddSeparator()
+
+		mCheckUpdate := systray.AddMenuItem("Update Backend", "Check for new backend version")
 		mUpdateFrontend := systray.AddMenuItem("Update Frontend", "Download latest frontend")
 		mAbout := systray.AddMenuItem("About", "About Desktop Server")
 		systray.AddSeparator()
@@ -142,8 +150,9 @@ func updateFrontend() {
 }
 
 func showAbout() {
-	message := fmt.Sprintf("Desktop Server %s\n\nLocal database management tool with gRPC-Web API\n\nRunning on: localhost:8080",
-		updater.CurrentVersion)
+	message := fmt.Sprintf("Desktop Server\n\nBackend: %s\nFrontend: %s\n\nLocal database management tool with gRPC-Web API\n\nRunning on: localhost:8080",
+		updater.CurrentVersion,
+		frontend.FrontendVersion)
 	showMessage("About Desktop Server", message)
 }
 
