@@ -281,6 +281,12 @@ func pollJobStatus(client *etcscraper.Client, jobID string) {
 				}
 			case "completed", "success":
 				jobStatusMenu.SetTitle(fmt.Sprintf("ETC Status: Completed (%d records)", status.TotalRecords))
+
+				// Clean up old download folders (keep only 10 most recent)
+				if err := CleanupDownloadFolders(10); err != nil {
+					log.Printf("Warning: Failed to cleanup old downloads: %v", err)
+				}
+
 				showMessage("ETC Download Completed", fmt.Sprintf("Successfully downloaded %d records", status.TotalRecords))
 				time.Sleep(10 * time.Second)
 				jobStatusMenu.Hide()
@@ -343,5 +349,77 @@ func isETCScraperAvailable() bool {
 
 	_, err = os.Stat(scraperPath)
 	return err == nil
+}
+
+// CleanupDownloadFolders keeps only the N most recent download folders
+func CleanupDownloadFolders(keepCount int) error {
+	// Get executable directory
+	exePath, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("failed to get executable path: %w", err)
+	}
+
+	downloadsDir := filepath.Join(filepath.Dir(exePath), "downloads")
+
+	// Check if downloads directory exists
+	if _, err := os.Stat(downloadsDir); os.IsNotExist(err) {
+		return nil // Nothing to clean up
+	}
+
+	// Read all entries in downloads directory
+	entries, err := os.ReadDir(downloadsDir)
+	if err != nil {
+		return fmt.Errorf("failed to read downloads directory: %w", err)
+	}
+
+	// Filter only directories and get their info
+	type dirInfo struct {
+		name    string
+		modTime time.Time
+	}
+
+	var dirs []dirInfo
+	for _, entry := range entries {
+		if entry.IsDir() {
+			info, err := entry.Info()
+			if err != nil {
+				log.Printf("Warning: Failed to get info for %s: %v", entry.Name(), err)
+				continue
+			}
+			dirs = append(dirs, dirInfo{
+				name:    entry.Name(),
+				modTime: info.ModTime(),
+			})
+		}
+	}
+
+	// If we have fewer than or equal to keepCount, nothing to delete
+	if len(dirs) <= keepCount {
+		log.Printf("Download folders: %d (within limit of %d)", len(dirs), keepCount)
+		return nil
+	}
+
+	// Sort by modification time (oldest first)
+	for i := 0; i < len(dirs); i++ {
+		for j := i + 1; j < len(dirs); j++ {
+			if dirs[i].modTime.After(dirs[j].modTime) {
+				dirs[i], dirs[j] = dirs[j], dirs[i]
+			}
+		}
+	}
+
+	// Delete oldest folders
+	deleteCount := len(dirs) - keepCount
+	log.Printf("Cleaning up %d old download folders (keeping %d most recent)", deleteCount, keepCount)
+
+	for i := 0; i < deleteCount; i++ {
+		dirPath := filepath.Join(downloadsDir, dirs[i].name)
+		log.Printf("Deleting old download folder: %s", dirs[i].name)
+		if err := os.RemoveAll(dirPath); err != nil {
+			log.Printf("Warning: Failed to delete %s: %v", dirs[i].name, err)
+		}
+	}
+
+	return nil
 }
 
