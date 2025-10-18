@@ -18,9 +18,21 @@ type GRPCServer struct {
 }
 
 func NewGRPCServer(db *DatabaseConnection) *GRPCServer {
-	return &GRPCServer{
-		db: db,
+	// Initialize gRPC server immediately
+	grpcSrv := grpc.NewServer()
+
+	srv := &GRPCServer{
+		db:         db,
+		grpcServer: grpcSrv,
 	}
+
+	// Register desktop-server's own database service
+	pb.RegisterDatabaseServiceServer(grpcSrv, srv)
+
+	// Register all db_service services automatically
+	registry.Register(grpcSrv)
+
+	return srv
 }
 
 func (s *GRPCServer) Start(addr string) error {
@@ -28,14 +40,6 @@ func (s *GRPCServer) Start(addr string) error {
 	if err != nil {
 		return fmt.Errorf("failed to listen: %w", err)
 	}
-
-	s.grpcServer = grpc.NewServer()
-
-	// Register desktop-server's own database service
-	pb.RegisterDatabaseServiceServer(s.grpcServer, s)
-
-	// Register all db_service services automatically
-	registry.Register(s.grpcServer)
 
 	fmt.Printf("gRPC server listening on %s\n", addr)
 	return s.grpcServer.Serve(lis)
