@@ -44,8 +44,10 @@ jobs:
 
       - name: Get version from tag
         id: get_version
-        shell: bash
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        shell: powershell
+        run: |
+          $version = "${{ github.ref }}".Replace("refs/tags/", "")
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
 
       - name: Create Release
         id: create_release
