@@ -6,7 +6,9 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
+	"time"
 
 	"desktop-server/frontend"
 	"desktop-server/internal/etcscraper"
@@ -15,7 +17,11 @@ import (
 	"github.com/getlantern/systray"
 )
 
-var scraperManager *etcscraper.Manager
+var (
+	scraperManager *etcscraper.Manager
+	currentJobID   string
+	jobStatusMenu  *systray.MenuItem
+)
 
 func Run(ctx context.Context, onExit func()) {
 	systray.Run(onReady(ctx, onExit), onExitFunc(onExit))
@@ -48,6 +54,16 @@ func onReady(ctx context.Context, onExit func()) func() {
 		mUpdateFrontend := systray.AddMenuItem("Update Frontend", "Download latest frontend")
 		systray.AddSeparator()
 		mETCDownload := systray.AddMenuItem("Download ETC Data", "Download ETC meisai data")
+
+		// Check if etc_meisai_scraper.exe exists
+		if !isETCScraperAvailable() {
+			mETCDownload.SetTitle("Download ETC Data (Not Available)")
+			mETCDownload.Disable()
+		}
+
+		jobStatusMenu = systray.AddMenuItem("ETC Status: Idle", "ETC download job status")
+		jobStatusMenu.Disable()
+		jobStatusMenu.Hide()
 		mAbout := systray.AddMenuItem("About", "About Desktop Server")
 		systray.AddSeparator()
 		mQuit := systray.AddMenuItem("Quit", "Quit the application")
@@ -164,30 +180,107 @@ func updateFrontend() {
 
 func downloadETCData() {
 	if scraperManager == nil {
+		log.Println("ERROR: scraperManager is nil")
 		showMessage("ETC Download Failed", "ETC scraper is not configured")
 		return
 	}
 
 	log.Println("Starting ETC data download...")
-	showMessage("ETC Download", "Starting ETC data download...")
 
 	// Get client (auto-starts etc_meisai_scraper.exe if needed)
+	log.Println("Getting ETC scraper client...")
 	client, err := scraperManager.GetClient()
 	if err != nil {
+		log.Printf("ERROR: Failed to get client: %v", err)
 		showMessage("ETC Download Failed", fmt.Sprintf("Failed to start ETC scraper: %v", err))
 		return
 	}
+	log.Println("Client obtained successfully")
 
 	// Start async download
+	log.Println("Starting async download...")
 	ctx := context.Background()
 	jobID, err := client.DownloadAsync(ctx, nil, "", "")
 	if err != nil {
+		log.Printf("ERROR: Failed to start download: %v", err)
 		showMessage("ETC Download Failed", fmt.Sprintf("Failed to start download: %v", err))
 		return
 	}
 
 	log.Printf("ETC download started, job ID: %s", jobID)
-	showMessage("ETC Download Started", fmt.Sprintf("Download job started (ID: %s)\n\nCheck the console for progress.", jobID))
+	currentJobID = jobID
+
+	// Show status menu and start polling
+	log.Println("Showing status menu and starting polling")
+	jobStatusMenu.SetTitle("ETC Status: Starting...")
+	jobStatusMenu.Show()
+
+	// Start polling job status in background
+	go pollJobStatus(client, jobID)
+}
+
+func pollJobStatus(client *etcscraper.Client, jobID string) {
+	ctx := context.Background()
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	log.Printf("Starting job status polling for job ID: %s", jobID)
+
+	for {
+		select {
+		case <-ticker.C:
+			log.Printf("Polling job status for: %s", jobID)
+			status, err := client.GetJobStatus(ctx, jobID)
+			if err != nil {
+				log.Printf("Failed to get job status: %v", err)
+				jobStatusMenu.SetTitle("ETC Status: Error")
+				time.Sleep(5 * time.Second)
+				jobStatusMenu.Hide()
+				return
+			}
+
+			if status == nil {
+				log.Printf("Job status is nil for job ID: %s", jobID)
+				jobStatusMenu.SetTitle("ETC Status: Job not found")
+				time.Sleep(5 * time.Second)
+				jobStatusMenu.Hide()
+				return
+			}
+
+			log.Printf("Job status: %s, Progress: %d/%d", status.Status, status.Progress, status.TotalRecords)
+
+			// Update menu based on status
+			switch status.Status {
+			case "pending":
+				jobStatusMenu.SetTitle("ETC Status: Pending...")
+			case "running", "processing":
+				if status.TotalRecords > 0 {
+					progress := (status.Progress * 100) / status.TotalRecords
+					jobStatusMenu.SetTitle(fmt.Sprintf("ETC Status: %d%% (%d/%d)", progress, status.Progress, status.TotalRecords))
+				} else {
+					jobStatusMenu.SetTitle("ETC Status: Processing...")
+				}
+			case "completed", "success":
+				jobStatusMenu.SetTitle(fmt.Sprintf("ETC Status: Completed (%d records)", status.TotalRecords))
+				showMessage("ETC Download Completed", fmt.Sprintf("Successfully downloaded %d records", status.TotalRecords))
+				time.Sleep(10 * time.Second)
+				jobStatusMenu.Hide()
+				return
+			case "failed", "error":
+				errorMsg := status.ErrorMessage
+				if errorMsg == "" {
+					errorMsg = "Unknown error"
+				}
+				jobStatusMenu.SetTitle("ETC Status: Failed")
+				showMessage("ETC Download Failed", fmt.Sprintf("Download failed: %s", errorMsg))
+				time.Sleep(10 * time.Second)
+				jobStatusMenu.Hide()
+				return
+			default:
+				jobStatusMenu.SetTitle(fmt.Sprintf("ETC Status: %s", status.Status))
+			}
+		}
+	}
 }
 
 func showAbout() {
@@ -217,5 +310,19 @@ func confirmUpdate(message string) bool {
 	// For now, just return true (auto-update)
 	fmt.Println(message)
 	return true
+}
+
+func isETCScraperAvailable() bool {
+	// Check if etc_meisai_scraper.exe exists in the same directory
+	exePath, err := os.Executable()
+	if err != nil {
+		return false
+	}
+
+	dir := filepath.Dir(exePath)
+	scraperPath := filepath.Join(dir, "etc_meisai_scraper.exe")
+
+	_, err = os.Stat(scraperPath)
+	return err == nil
 }
 
