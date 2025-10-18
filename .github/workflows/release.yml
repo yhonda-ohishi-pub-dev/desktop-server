@@ -32,6 +32,18 @@ jobs:
         run: |
           protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/database.proto
 
+      - name: Copy db_service proto files
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path proto/db_service
+          $dbServicePath = Get-ChildItem -Path "$env:USERPROFILE/go/pkg/mod/github.com/yhonda-ohishi/db_service@*" -Directory | Select-Object -First 1
+          if ($dbServicePath) {
+            Copy-Item "$dbServicePath/src/proto/*.proto" -Destination proto/db_service/ -Force
+            Write-Host "Copied db_service proto files from $dbServicePath"
+          } else {
+            Write-Host "Warning: db_service proto files not found"
+          }
+
       - name: Create frontend dist directory
         run: |
           mkdir -p frontend/dist
@@ -81,10 +93,11 @@ jobs:
 
             ## For Developers
 
-            - `desktop-server.exe` - Main application binary
-            - `database.proto` - Protocol Buffers definition for gRPC API
+            **Protocol Buffers definitions:**
+            - `database.proto` - Desktop-server gRPC API
+            - `ryohi.proto` - db_service gRPC API (ETCMeisai, DTakoUriageKeihi, DTakoFerryRows, ETCMeisaiMapping)
 
-            Use the proto file to generate client code for your preferred language.
+            Use the proto files to generate client code for your preferred language.
 
             ## What's Changed
 
@@ -94,5 +107,6 @@ jobs:
           files: |
             desktop-server.exe
             proto/database.proto
+            proto/db_service/*.proto
           draft: false
           prerelease: false

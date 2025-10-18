@@ -24,6 +24,9 @@ frontend_tmp.zip
 # Uncomment if you want to regenerate proto files
 # proto/*.pb.go
 
+# db_service proto files (copied during CI/CD)
+proto/db_service/
+
 # IDE
 .vscode/
 .idea/

@@ -119,9 +119,11 @@ go build -ldflags="-H windowsgui" -o desktop-server.exe .
 
 ## Configuration
 
-Set environment variables for database connection:
+### Desktop-Server Database (Optional)
 
-### SQL Server
+Set environment variables for desktop-server's database connection:
+
+#### SQL Server
 
 ```bash
 DB_DRIVER=sqlserver
@@ -132,7 +134,7 @@ DB_PASSWORD=yourpassword
 DB_NAME=master
 ```
 
-### MySQL
+#### MySQL
 
 ```bash
 DB_DRIVER=mysql
@@ -142,6 +144,38 @@ DB_USER=root
 DB_PASSWORD=yourpassword
 DB_NAME=mysql
 ```
+
+### db_service Integration (Optional)
+
+Desktop Server integrates with [db_service](https://github.com/yhonda-ohishi/db_service) for additional database services.
+
+To enable db_service features, create a `.env` file in the same directory as `desktop-server.exe`:
+
+```bash
+# Required
+DB_USER=your_mysql_username
+DB_PASSWORD=your_mysql_password
+
+# Optional (defaults shown)
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=ryohi_sub_cal
+```
+
+Or copy `.env.example` to `.env` and edit:
+
+```bash
+cp .env.example .env
+# Edit .env with your database credentials
+```
+
+**db_service provides these gRPC services:**
+- `ETCMeisaiService` - ETC明細管理
+- `DTakoUriageKeihiService` - 経費精算管理
+- `DTakoFerryRowsService` - フェリー運行管理
+- `ETCMeisaiMappingService` - ETC明細マッピング
+
+If `.env` is not configured, desktop-server will run without db_service features (warning messages will appear in logs).
 
 ## Running
 
