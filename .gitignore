@@ -1,0 +1,41 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Go workspace file
+go.work
+
+# Frontend build output
+desktop-sv/dist/
+desktop-sv/node_modules/
+desktop-sv/generated/
+
+# Proto generated files (tracked in repo)
+# Uncomment if you want to regenerate proto files
+# proto/*.pb.go
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log

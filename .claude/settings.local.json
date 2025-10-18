@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go mod init desktop-server)",
+      "Bash(go mod tidy)",
+      "Bash(go build -o desktop-server.exe .)",
+      "Bash(./desktop-server.exe)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
