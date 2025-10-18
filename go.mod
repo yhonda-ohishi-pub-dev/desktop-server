@@ -7,7 +7,7 @@ require (
 	github.com/getlantern/systray v1.2.2
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/improbable-eng/grpc-web v0.15.0
-	github.com/yhonda-ohishi/db_service v0.0.0-20251018141045-2acdd254fcb4
+	github.com/yhonda-ohishi/db_service v0.0.0-20251018144613-31c1a23634b8
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 )
