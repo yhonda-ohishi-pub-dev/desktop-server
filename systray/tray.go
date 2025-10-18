@@ -12,10 +12,13 @@ import (
 	"time"
 
 	"desktop-server/frontend"
+	"desktop-server/internal/etcdb"
 	"desktop-server/internal/etcscraper"
 	"desktop-server/updater"
 
 	"github.com/getlantern/systray"
+	pb "github.com/yhonda-ohishi/etc_data_processor/src/proto"
+	"github.com/yhonda-ohishi/etc_data_processor/src/pkg/handler"
 )
 
 var (
@@ -282,6 +285,9 @@ func pollJobStatus(client *etcscraper.Client, jobID string) {
 			case "completed", "success":
 				jobStatusMenu.SetTitle(fmt.Sprintf("ETC Status: Completed (%d records)", status.TotalRecords))
 
+				// Process downloaded CSV files
+				go processDownloadedCSVFiles()
+
 				// Clean up old download folders (keep only 10 most recent)
 				if err := CleanupDownloadFolders(10); err != nil {
 					log.Printf("Warning: Failed to cleanup old downloads: %v", err)
@@ -421,5 +427,106 @@ func CleanupDownloadFolders(keepCount int) error {
 	}
 
 	return nil
+}
+
+// processDownloadedCSVFiles processes all CSV files in the downloads directory
+func processDownloadedCSVFiles() {
+	log.Println("Starting CSV file processing...")
+
+	// Get executable directory
+	exePath, err := os.Executable()
+	if err != nil {
+		log.Printf("ERROR: Failed to get executable path: %v", err)
+		return
+	}
+
+	downloadsDir := filepath.Join(filepath.Dir(exePath), "downloads")
+
+	// Check if downloads directory exists
+	if _, err := os.Stat(downloadsDir); os.IsNotExist(err) {
+		log.Println("No downloads directory found")
+		return
+	}
+
+	// Read all entries in downloads directory
+	entries, err := os.ReadDir(downloadsDir)
+	if err != nil {
+		log.Printf("ERROR: Failed to read downloads directory: %v", err)
+		return
+	}
+
+	// Process each directory
+	totalProcessed := 0
+	totalErrors := 0
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		dirPath := filepath.Join(downloadsDir, entry.Name())
+		log.Printf("Processing directory: %s", entry.Name())
+
+		// Read CSV files in this directory
+		csvFiles, err := filepath.Glob(filepath.Join(dirPath, "*.csv"))
+		if err != nil {
+			log.Printf("ERROR: Failed to read CSV files in %s: %v", entry.Name(), err)
+			continue
+		}
+
+		// Process each CSV file
+		for _, csvFile := range csvFiles {
+			log.Printf("Processing CSV file: %s", csvFile)
+
+			// Extract account ID from directory name (format: accountname_timestamp)
+			accountID := strings.Split(entry.Name(), "_")[0]
+
+			// Process the CSV file
+			response, err := processCSVFile(csvFile, accountID)
+			if err != nil {
+				log.Printf("ERROR: Failed to process %s: %v", csvFile, err)
+				totalErrors++
+				continue
+			}
+
+			if response.Success {
+				log.Printf("Successfully processed %s: %d records saved, %d skipped",
+					csvFile, response.Stats.SavedRecords, response.Stats.SkippedRecords)
+				totalProcessed++
+			} else {
+				log.Printf("Failed to process %s: %s", csvFile, response.Message)
+				for _, errMsg := range response.Errors {
+					log.Printf("  - %s", errMsg)
+				}
+				totalErrors++
+			}
+		}
+	}
+
+	log.Printf("CSV processing complete: %d files processed, %d errors", totalProcessed, totalErrors)
+}
+
+// processCSVFile processes a single CSV file using etc_data_processor
+func processCSVFile(filePath, accountID string) (*pb.ProcessCSVFileResponse, error) {
+	// Create DB client
+	dbClient, err := etcdb.NewETCDBClient("localhost:50051")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create DB client: %w", err)
+	}
+	defer dbClient.Close()
+
+	// Create a service instance
+	svc := handler.NewDataProcessorService(dbClient)
+
+	// Create request
+	req := &pb.ProcessCSVFileRequest{
+		CsvFilePath:    filePath,
+		AccountId:      accountID,
+		SkipDuplicates: true, // Skip duplicate records
+	}
+
+	// Process the file
+	ctx := context.Background()
+	return svc.ProcessCSVFile(ctx, req)
 }
 

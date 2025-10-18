@@ -1,6 +1,6 @@
 module desktop-server
 
-go 1.24.0
+go 1.25.1
 
 require (
 	github.com/denisenkom/go-mssqldb v0.12.3
@@ -11,6 +11,8 @@ require (
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 )
+
+require github.com/yhonda-ohishi/etc_data_processor v0.0.0-20250928124809-5be81bbd1bff // indirect
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
