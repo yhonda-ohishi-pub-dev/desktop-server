@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	FrontendRepo    = "yhonda-ohishi/desktop-server-front"
+	FrontendRepo    = "yhonda-ohishi-pub-dev/desktop-server-front"
 	FrontendDistDir = "frontend/dist"
 )
 
@@ -44,14 +44,14 @@ func DownloadLatestRelease(forceUpdate bool) error {
 	downloadURL := fmt.Sprintf("https://github.com/%s/releases/download/%s/desktop-server-frontend-%s.zip",
 		FrontendRepo, version, version)
 
-	// If versioned URL doesn't exist, try latest
+	// If versioned URL doesn't exist, try v1.2.0 (current latest)
 	if !urlExists(downloadURL) {
-		fmt.Printf("Version %s not found, trying latest release...\n", version)
-		downloadURL = fmt.Sprintf("https://github.com/%s/releases/latest/download/desktop-server-frontend-latest.zip", FrontendRepo)
+		fmt.Printf("Version %s not found, trying v1.2.0...\n", version)
+		downloadURL = fmt.Sprintf("https://github.com/%s/releases/download/v1.2.0/desktop-server-frontend-v1.2.0.zip", FrontendRepo)
 
 		// Final fallback to v1.0.0
 		if !urlExists(downloadURL) {
-			fmt.Println("Latest not found, falling back to v1.0.0...")
+			fmt.Println("v1.2.0 not found, falling back to v1.0.0...")
 			downloadURL = fmt.Sprintf("https://github.com/%s/releases/download/v1.0.0/desktop-server-frontend-v1.0.0.zip", FrontendRepo)
 		}
 	}
