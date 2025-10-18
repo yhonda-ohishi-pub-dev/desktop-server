@@ -3,13 +3,15 @@ package etcdb
 import (
 	"context"
 	"fmt"
+	"time"
 
 	pb "github.com/yhonda-ohishi/db_service/src/proto"
+	"github.com/yhonda-ohishi/etc_data_processor/src/pkg/parser"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-// ETCDBClient implements DBClient interface for etc_data_processor
+// ETCDBClient wraps db_service ETCMeisai operations
 type ETCDBClient struct {
 	conn    *grpc.ClientConn
 	client  pb.ETCMeisaiServiceClient
@@ -28,47 +30,45 @@ func NewETCDBClient(address string) (*ETCDBClient, error) {
 	}, nil
 }
 
-// SaveETCData saves ETC data to database via db_service
-func (c *ETCDBClient) SaveETCData(data interface{}) error {
-	// Convert data to map format (from etc_data_processor)
-	dataMap, ok := data.(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("invalid data type, expected map[string]interface{}")
+// SaveETCRecord saves a single ETC record to database
+func (c *ETCDBClient) SaveETCRecord(ctx context.Context, record parser.ActualETCRecord) error {
+	// Parse and format dates
+	_, err := parseDate(record.EntryDate)
+	if err != nil {
+		return fmt.Errorf("invalid entry date: %w", err)
 	}
 
-	ctx := context.Background()
+	exitDate, err := parseDate(record.ExitDate)
+	if err != nil {
+		return fmt.Errorf("invalid exit date: %w", err)
+	}
 
-	// Extract fields from map
-	date, _ := dataMap["date"].(string)
-	entryIC, _ := dataMap["entry_ic"].(string)
-	exitIC, _ := dataMap["exit_ic"].(string)
-	route, _ := dataMap["route"].(string)
-	vehicleType, _ := dataMap["vehicle_type"].(string)
-	amount, _ := dataMap["amount"].(int)
-	cardNumber, _ := dataMap["card_number"].(string)
+	// Format dates for db_service
+	// date_to: RFC3339形式推奨 (例: 2025-10-18T15:30:00Z)
+	exitDateTime := fmt.Sprintf("%sT%s:00Z", exitDate.Format("2006-01-02"), record.ExitTime)
+	// date_to_date: YYYY-MM-DD形式 (例: 2025-10-18)
+	exitDateOnly := exitDate.Format("2006-01-02")
 
-	// Map to ETCMeisai fields
-	// date_to_date: 利用日
-	// ic_fr: 入口IC
-	// ic_to: 出口IC
-	// detail: ルート情報
-	// shashu: 車種
-	// price: 料金
-	// etc_num: カード番号
+	// ic_fr (入口IC) は optional - *string型
+	var icFr *string
+	if record.EntryIC != "" {
+		icFr = &record.EntryIC
+	}
 
 	req := &pb.CreateETCMeisaiRequest{
 		EtcMeisai: &pb.ETCMeisai{
-			DateToDate: date,
-			IcFr:       entryIC,
-			IcTo:       exitIC,
-			Price:      int32(amount),
-			Shashu:     parseVehicleType(vehicleType),
-			EtcNum:     cardNumber,
-			Detail:     &route,
+			DateTo:     exitDateTime,   // 必須: 出口日時
+			DateToDate: exitDateOnly,   // 必須: 出口日付のみ
+			IcFr:       icFr,           // optional: 入口IC (*string型、実データの22.3%が空)
+			IcTo:       record.ExitIC,  // 必須: 出口IC
+			Price:      int32(record.ETCAmount), // 必須: ETC料金
+			Shashu:     int32(record.VehicleClass), // 必須: 車種
+			EtcNum:     record.CardNumber, // 必須: ETCカード番号
+			Hash:       "", // 空文字列 (db_service側で自動生成)
 		},
 	}
 
-	_, err := c.client.Create(ctx, req)
+	_, err = c.client.Create(ctx, req)
 	if err != nil {
 		return fmt.Errorf("failed to save ETC record: %w", err)
 	}
@@ -76,19 +76,22 @@ func (c *ETCDBClient) SaveETCData(data interface{}) error {
 	return nil
 }
 
-// parseVehicleType converts vehicle type string to int32
-func parseVehicleType(vtype string) int32 {
-	// Simple mapping - adjust based on actual vehicle types
-	switch vtype {
-	case "普通車":
-		return 1
-	case "大型車":
-		return 2
-	case "中型車":
-		return 3
-	default:
-		return 1 // Default to 普通車
+// parseDate parses various date formats
+func parseDate(dateStr string) (time.Time, error) {
+	formats := []string{
+		"06/01/02",
+		"2006/01/02",
+		"2006-01-02",
+		"06-01-02",
 	}
+
+	for _, format := range formats {
+		if t, err := time.Parse(format, dateStr); err == nil {
+			return t, nil
+		}
+	}
+
+	return time.Time{}, fmt.Errorf("unable to parse date: %s", dateStr)
 }
 
 // Close closes the connection

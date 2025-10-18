@@ -17,8 +17,7 @@ import (
 	"desktop-server/updater"
 
 	"github.com/getlantern/systray"
-	pb "github.com/yhonda-ohishi/etc_data_processor/src/proto"
-	"github.com/yhonda-ohishi/etc_data_processor/src/pkg/handler"
+	"github.com/yhonda-ohishi/etc_data_processor/src/pkg/parser"
 )
 
 var (
@@ -482,22 +481,19 @@ func processDownloadedCSVFiles() {
 			accountID := strings.Split(entry.Name(), "_")[0]
 
 			// Process the CSV file
-			response, err := processCSVFile(csvFile, accountID)
+			saved, errs, err := processCSVFile(csvFile, accountID)
 			if err != nil {
 				log.Printf("ERROR: Failed to process %s: %v", csvFile, err)
 				totalErrors++
 				continue
 			}
 
-			if response.Success {
-				log.Printf("Successfully processed %s: %d records saved, %d skipped",
-					csvFile, response.Stats.SavedRecords, response.Stats.SkippedRecords)
+			if saved > 0 {
+				log.Printf("Successfully processed %s: %d records saved, %d errors",
+					csvFile, saved, errs)
 				totalProcessed++
 			} else {
-				log.Printf("Failed to process %s: %s", csvFile, response.Message)
-				for _, errMsg := range response.Errors {
-					log.Printf("  - %s", errMsg)
-				}
+				log.Printf("Failed to process %s: 0 records saved, %d errors", csvFile, errs)
 				totalErrors++
 			}
 		}
@@ -506,27 +502,38 @@ func processDownloadedCSVFiles() {
 	log.Printf("CSV processing complete: %d files processed, %d errors", totalProcessed, totalErrors)
 }
 
-// processCSVFile processes a single CSV file using etc_data_processor
-func processCSVFile(filePath, accountID string) (*pb.ProcessCSVFileResponse, error) {
+// processCSVFile processes a single CSV file using etc_data_processor parser
+func processCSVFile(filePath, accountID string) (int, int, error) {
+	// Create parser
+	csvParser := parser.NewETCCSVParser()
+
+	// Parse CSV file
+	records, err := csvParser.ParseFile(filePath)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to parse CSV: %w", err)
+	}
+
 	// Create DB client
 	dbClient, err := etcdb.NewETCDBClient("localhost:50051")
 	if err != nil {
-		return nil, fmt.Errorf("failed to create DB client: %w", err)
+		return 0, 0, fmt.Errorf("failed to create DB client: %w", err)
 	}
 	defer dbClient.Close()
 
-	// Create a service instance
-	svc := handler.NewDataProcessorService(dbClient)
+	// Save each record to database
+	ctx := context.Background()
+	saved := 0
+	errors := 0
 
-	// Create request
-	req := &pb.ProcessCSVFileRequest{
-		CsvFilePath:    filePath,
-		AccountId:      accountID,
-		SkipDuplicates: true, // Skip duplicate records
+	for _, record := range records {
+		if err := dbClient.SaveETCRecord(ctx, record); err != nil {
+			log.Printf("Failed to save record: %v", err)
+			errors++
+		} else {
+			saved++
+		}
 	}
 
-	// Process the file
-	ctx := context.Background()
-	return svc.ProcessCSVFile(ctx, req)
+	return saved, errors, nil
 }
 
