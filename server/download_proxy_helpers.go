@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"os"
 	"strings"
 
 	"desktop-server/systray"
@@ -29,4 +30,32 @@ func (p *DownloadServiceProxy) processAndSaveCSV(csvPath string, accounts []stri
 
 	log.Printf("CSV processing completed: %d saved, %d errors", saved, errors)
 	return saved, errors
+}
+
+// getAccountsFromEnv retrieves account information from ETC_CORP_ACCOUNTS environment variable
+// Expected format: ETC_CORP_ACCOUNTS=["userid1:password1","userid2:password2"]
+func getAccountsFromEnv() []string {
+	accountsEnv := os.Getenv("ETC_CORP_ACCOUNTS")
+	if accountsEnv == "" {
+		return []string{}
+	}
+
+	// Parse JSON array format
+	accountsEnv = strings.TrimSpace(accountsEnv)
+	accountsEnv = strings.Trim(accountsEnv, "[]")
+	accountsEnv = strings.ReplaceAll(accountsEnv, "\"", "")
+
+	if accountsEnv == "" {
+		return []string{}
+	}
+
+	accounts := strings.Split(accountsEnv, ",")
+
+	// Trim whitespace from each account
+	for i := range accounts {
+		accounts[i] = strings.TrimSpace(accounts[i])
+	}
+
+	log.Printf("Loaded %d account(s) from ETC_CORP_ACCOUNTS", len(accounts))
+	return accounts
 }

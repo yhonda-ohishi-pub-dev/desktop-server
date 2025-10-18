@@ -25,6 +25,19 @@ func NewDownloadServiceProxy(scraperManager *etcscraper.Manager) *DownloadServic
 func (p *DownloadServiceProxy) DownloadSync(ctx context.Context, req *downloadpb.DownloadRequest) (*downloadpb.DownloadResponse, error) {
 	log.Printf("DownloadSync called with accounts: %v, from: %s, to: %s, mode: %s", req.Accounts, req.FromDate, req.ToDate, req.Mode)
 
+	// If accounts is empty, get from environment variable
+	if len(req.Accounts) == 0 {
+		accounts := getAccountsFromEnv()
+		if len(accounts) == 0 {
+			return &downloadpb.DownloadResponse{
+				Success: false,
+				Error:   "no accounts specified and ETC_CORP_ACCOUNTS environment variable not set",
+			}, nil
+		}
+		req.Accounts = accounts
+		log.Printf("Using accounts from environment variable: %v", accounts)
+	}
+
 	client, err := p.scraperManager.GetClient()
 	if err != nil {
 		return &downloadpb.DownloadResponse{
@@ -59,6 +72,19 @@ func (p *DownloadServiceProxy) DownloadSync(ctx context.Context, req *downloadpb
 
 func (p *DownloadServiceProxy) DownloadAsync(ctx context.Context, req *downloadpb.DownloadRequest) (*downloadpb.DownloadJobResponse, error) {
 	log.Printf("DownloadAsync called with accounts: %v, from: %s, to: %s", req.Accounts, req.FromDate, req.ToDate)
+
+	// If accounts is empty, get from environment variable
+	if len(req.Accounts) == 0 {
+		accounts := getAccountsFromEnv()
+		if len(accounts) == 0 {
+			return &downloadpb.DownloadJobResponse{
+				Status:  "error",
+				Message: "no accounts specified and ETC_CORP_ACCOUNTS environment variable not set",
+			}, nil
+		}
+		req.Accounts = accounts
+		log.Printf("Using accounts from environment variable: %v", accounts)
+	}
 
 	client, err := p.scraperManager.GetClient()
 	if err != nil {
