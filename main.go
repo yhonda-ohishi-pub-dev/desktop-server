@@ -71,8 +71,13 @@ func main() {
 		defer db.Close()
 	}
 
-	// Start gRPC server
-	grpcServer := server.NewGRPCServer(db)
+	// Initialize etc_meisai_scraper manager (auto-start enabled)
+	scraperManager := etcscraper.NewManager("localhost:50052", "", true)
+	defer scraperManager.Stop()
+	systray.SetScraperManager(scraperManager)
+
+	// Start gRPC server with DownloadService proxy
+	grpcServer := server.NewGRPCServer(db, scraperManager)
 	go func() {
 		if err := grpcServer.Start(":50051"); err != nil {
 			log.Fatalf("Failed to start gRPC server: %v", err)
@@ -90,11 +95,6 @@ func main() {
 	fmt.Println("Server started on:")
 	fmt.Println("  - gRPC: localhost:50051")
 	fmt.Println("  - HTTP: http://localhost:8080")
-
-	// Initialize etc_meisai_scraper manager (auto-start enabled)
-	scraperManager := etcscraper.NewManager("localhost:50052", "", true)
-	defer scraperManager.Stop()
-	systray.SetScraperManager(scraperManager)
 
 	// Start systray
 	go systray.Run(ctx, func() {

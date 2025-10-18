@@ -6,8 +6,10 @@ import (
 	"net"
 
 	pb "desktop-server/proto"
+	"desktop-server/internal/etcscraper"
 
 	"github.com/yhonda-ohishi/db_service/src/registry"
+	downloadpb "github.com/yhonda-ohishi/etc_meisai_scraper/src/pb"
 	"google.golang.org/grpc"
 )
 
@@ -17,7 +19,7 @@ type GRPCServer struct {
 	grpcServer *grpc.Server
 }
 
-func NewGRPCServer(db *DatabaseConnection) *GRPCServer {
+func NewGRPCServer(db *DatabaseConnection, scraperManager *etcscraper.Manager) *GRPCServer {
 	// Initialize gRPC server immediately
 	grpcSrv := grpc.NewServer()
 
@@ -31,6 +33,10 @@ func NewGRPCServer(db *DatabaseConnection) *GRPCServer {
 
 	// Register all db_service services automatically
 	registry.Register(grpcSrv)
+
+	// Register DownloadService proxy
+	downloadProxy := NewDownloadServiceProxy(scraperManager)
+	downloadpb.RegisterDownloadServiceServer(grpcSrv, downloadProxy)
 
 	return srv
 }
