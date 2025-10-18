@@ -78,6 +78,43 @@ make build-gui
 
 # Run the application
 make run
+
+# Update frontend to latest version
+make update-frontend
+```
+
+## Release Process
+
+This project uses GitHub Actions for automated releases.
+
+### Creating a New Release
+
+1. Update version in code if needed
+2. Commit all changes
+3. Create and push a new tag:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+4. GitHub Actions will automatically:
+   - Build the application
+   - Download latest frontend
+   - Create a GitHub Release
+   - Upload `desktop-server.exe` as a release asset
+
+### Manual Release
+
+```bash
+# Download latest frontend
+go run . -update
+
+# Build for release
+make build-gui
+
+# Or directly with go
+go build -ldflags="-H windowsgui" -o desktop-server.exe .
 ```
 
 ## Configuration
@@ -110,23 +147,36 @@ DB_NAME=mysql
 
 1. Set database environment variables (optional, see Configuration above)
 2. Run the executable: `desktop-server.exe`
-3. The app will start in the system tray
+3. The app will start in the system tray (no console window)
 4. Right-click the tray icon and select:
    - **Open App**: Opens the web interface in your browser
-   - **Check for Updates**: Checks for new versions on GitHub
+   - **Check for Updates**: Checks for new backend versions on GitHub
+   - **Update Frontend**: Downloads latest frontend from releases
    - **About**: Shows version information
    - **Quit**: Exits the application
 
-## Auto-Update Feature
+## Auto-Update Features
 
-Desktop Server includes built-in auto-update functionality:
+Desktop Server includes built-in auto-update functionality for both backend and frontend:
+
+### Backend Updates
 
 - Click "Check for Updates" in the system tray menu
-- The app will check GitHub Releases for new versions
+- The app will check GitHub Releases for new backend versions
 - If available, it will download and apply the update automatically
 - The app will restart with the new version
 
-**For Developers**: Update the version in `updater/github.go` and create a GitHub Release with the new executable.
+### Frontend Updates
+
+- Click "Update Frontend" in the system tray menu
+- Downloads the latest frontend from the frontend repository
+- Restart the application to apply changes
+- Or use command line: `desktop-server.exe -update`
+
+### Automatic Frontend Download
+
+- On first run, if frontend is missing, it will be downloaded automatically
+- No manual setup required
 
 ## Project Structure
 

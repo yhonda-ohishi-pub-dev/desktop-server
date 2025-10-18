@@ -2,17 +2,37 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"desktop-server/frontend"
 	"desktop-server/server"
 	"desktop-server/systray"
 )
 
 func main() {
+	// Parse command line flags
+	updateFrontend := flag.Bool("update", false, "Force download latest frontend")
+	flag.Parse()
+
+	// Download frontend if missing or update requested
+	if err := frontend.DownloadLatestRelease(*updateFrontend); err != nil {
+		log.Printf("Warning: Failed to download frontend: %v", err)
+		if *updateFrontend {
+			log.Fatal("Update requested but failed")
+		}
+	}
+
+	// If only updating, exit after download
+	if *updateFrontend {
+		fmt.Println("Frontend updated successfully")
+		return
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"desktop-server/frontend"
+
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 )
 
@@ -37,10 +39,14 @@ func (s *HTTPServer) Start(addr string) error {
 	// gRPC-Web endpoint
 	mux.Handle("/api/", http.StripPrefix("/api", wrappedGrpc))
 
-	// Frontend placeholder
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprintf(w, `
+	// Serve embedded frontend files
+	distFS, err := frontend.GetDistFS()
+	if err != nil {
+		fmt.Printf("Warning: Failed to load frontend files: %v\n", err)
+		// Fallback to placeholder
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprintf(w, `
 <!DOCTYPE html>
 <html>
 <head>
@@ -48,12 +54,17 @@ func (s *HTTPServer) Start(addr string) error {
 </head>
 <body>
     <h1>Desktop Server is Running</h1>
-    <p>Frontend files not embedded yet. Build the frontend first.</p>
+    <p>Frontend files not available. Please run with -update flag to download.</p>
     <p>gRPC-Web API is available at <a href="/api">/api</a></p>
 </body>
 </html>
 `)
-	})
+		})
+	} else {
+		// Serve static files from embedded filesystem
+		fileServer := http.FileServer(http.FS(distFS))
+		mux.Handle("/", fileServer)
+	}
 
 	s.httpServer = &http.Server{
 		Addr:         addr,

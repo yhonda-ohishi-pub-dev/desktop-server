@@ -1,0 +1,106 @@
+name: Release Desktop Server
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Install Protocol Buffers
+        run: |
+          choco install protoc -y
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+      - name: Generate Proto files
+        run: |
+          protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/database.proto
+
+      - name: Download latest frontend
+        run: |
+          go run . -update
+
+      - name: Build for Windows (GUI mode)
+        run: |
+          go build -ldflags="-H windowsgui" -o desktop-server.exe .
+
+      - name: Get version from tag
+        id: get_version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Desktop Server ${{ steps.get_version.outputs.VERSION }}
+          body: |
+            # Desktop Server ${{ steps.get_version.outputs.VERSION }}
+
+            Windows Desktop Application for local database management with gRPC-Web API.
+
+            ## Features
+
+            - Single Binary with embedded frontend
+            - System Tray interface
+            - gRPC-Web API
+            - Multi-Database Support (SQL Server, MySQL)
+            - Auto-update functionality
+
+            ## Installation
+
+            1. Download `desktop-server.exe`
+            2. Double-click to run
+            3. The app will appear in your system tray
+            4. Right-click the tray icon and select "Open App"
+
+            ## For Developers
+
+            - `desktop-server.exe` - Main application binary
+            - `database.proto` - Protocol Buffers definition for gRPC API
+
+            Use the proto file to generate client code for your preferred language.
+
+            ## What's Changed
+
+            See commits for details.
+
+            **Full Changelog**: https://github.com/${{ github.repository }}/commits/${{ steps.get_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Desktop Server Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./desktop-server.exe
+          asset_name: desktop-server.exe
+          asset_content_type: application/octet-stream
+
+      - name: Upload Proto File
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./proto/database.proto
+          asset_name: database.proto
+          asset_content_type: text/plain

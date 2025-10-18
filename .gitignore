@@ -17,6 +17,8 @@ go.work
 desktop-sv/dist/
 desktop-sv/node_modules/
 desktop-sv/generated/
+frontend/dist/
+frontend_tmp.zip
 
 # Proto generated files (tracked in repo)
 # Uncomment if you want to regenerate proto files

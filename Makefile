@@ -1,4 +1,4 @@
-.PHONY: proto clean build build-gui run release install-tools
+.PHONY: proto clean build build-gui run release install-tools update-frontend
 
 proto:
 	protoc --go_out=. --go_opt=paths=source_relative \
@@ -9,6 +9,7 @@ clean:
 	rm -rf proto/*.pb.go
 	rm -rf desktop-server.exe
 	rm -rf dist/
+	rm -rf frontend/dist/
 
 build: proto
 	go mod tidy
@@ -31,3 +32,7 @@ release: build-gui
 install-tools:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+update-frontend:
+	@echo "Downloading latest frontend..."
+	go run . -update
