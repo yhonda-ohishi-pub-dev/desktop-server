@@ -44,6 +44,35 @@ jobs:
             Write-Host "Warning: db_service proto files not found"
           }
 
+      - name: Copy etc_meisai_scraper proto files
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path proto/etc_meisai_scraper
+          $etcScraperPath = Get-ChildItem -Path "$env:USERPROFILE/go/pkg/mod/github.com/yhonda-ohishi/etc_meisai_scraper@*" -Directory | Select-Object -First 1
+          if ($etcScraperPath) {
+            Copy-Item "$etcScraperPath/src/proto/*.proto" -Destination proto/etc_meisai_scraper/ -Force
+            Write-Host "Copied etc_meisai_scraper proto files from $etcScraperPath"
+          } else {
+            Write-Host "Warning: etc_meisai_scraper proto files not found"
+          }
+
+      - name: Build etc_meisai_scraper binary
+        shell: powershell
+        run: |
+          Write-Host "Building etc_meisai_scraper..."
+
+          # Clone etc_meisai_scraper repository
+          git clone https://github.com/yhonda-ohishi/etc_meisai_scraper.git temp_etc_scraper
+          cd temp_etc_scraper
+
+          # Build the binary
+          go mod tidy
+          go build -ldflags="-H windowsgui" -o ../etc_meisai_scraper.exe .
+
+          cd ..
+          Remove-Item -Recurse -Force temp_etc_scraper
+          Write-Host "Built etc_meisai_scraper.exe"
+
       - name: Create frontend dist directory
         run: |
           mkdir -p frontend/dist
@@ -95,7 +124,12 @@ jobs:
 
             **Protocol Buffers definitions:**
             - `database.proto` - Desktop-server gRPC API
-            - `ryohi.proto` - db_service gRPC API (ETCMeisai, DTakoUriageKeihi, DTakoFerryRows, ETCMeisaiMapping)
+            - `proto/db_service/*.proto` - db_service gRPC API (ETCMeisai, DTakoUriageKeihi, DTakoFerryRows, ETCMeisaiMapping)
+            - `proto/etc_meisai_scraper/*.proto` - etc_meisai_scraper gRPC API (DownloadService)
+
+            **Binaries:**
+            - `desktop-server.exe` - Main application
+            - `etc_meisai_scraper.exe` - ETC data scraper (optional, auto-started when needed)
 
             Use the proto files to generate client code for your preferred language.
 
@@ -106,7 +140,9 @@ jobs:
             **Full Changelog**: https://github.com/${{ github.repository }}/commits/${{ steps.get_version.outputs.VERSION }}
           files: |
             desktop-server.exe
+            etc_meisai_scraper.exe
             proto/database.proto
             proto/db_service/*.proto
+            proto/etc_meisai_scraper/*.proto
           draft: false
           prerelease: false

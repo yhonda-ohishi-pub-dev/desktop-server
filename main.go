@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"desktop-server/frontend"
+	"desktop-server/internal/etcscraper"
 	"desktop-server/internal/process"
 	"desktop-server/server"
 	"desktop-server/systray"
@@ -78,6 +79,11 @@ func main() {
 	fmt.Println("Server started on:")
 	fmt.Println("  - gRPC: localhost:50051")
 	fmt.Println("  - HTTP: http://localhost:8080")
+
+	// Initialize etc_meisai_scraper manager (auto-start enabled)
+	scraperManager := etcscraper.NewManager("localhost:50052", "", true)
+	defer scraperManager.Stop()
+	systray.SetScraperManager(scraperManager)
 
 	// Start systray
 	go systray.Run(ctx, func() {

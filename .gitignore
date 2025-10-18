@@ -27,6 +27,9 @@ frontend_tmp.zip
 # db_service proto files (copied during CI/CD)
 proto/db_service/
 
+# etc_meisai_scraper proto files (copied during CI/CD)
+proto/etc_meisai_scraper/
+
 # IDE
 .vscode/
 .idea/

@@ -3,18 +3,27 @@ package systray
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"runtime"
 
 	"desktop-server/frontend"
+	"desktop-server/internal/etcscraper"
 	"desktop-server/updater"
 
 	"github.com/getlantern/systray"
 )
 
+var scraperManager *etcscraper.Manager
+
 func Run(ctx context.Context, onExit func()) {
 	systray.Run(onReady(ctx, onExit), onExitFunc(onExit))
+}
+
+// SetScraperManager sets the etc_meisai_scraper manager
+func SetScraperManager(manager *etcscraper.Manager) {
+	scraperManager = manager
 }
 
 func onReady(ctx context.Context, onExit func()) func() {
@@ -37,6 +46,8 @@ func onReady(ctx context.Context, onExit func()) func() {
 
 		mCheckUpdate := systray.AddMenuItem("Update Backend", "Check for new backend version")
 		mUpdateFrontend := systray.AddMenuItem("Update Frontend", "Download latest frontend")
+		systray.AddSeparator()
+		mETCDownload := systray.AddMenuItem("Download ETC Data", "Download ETC meisai data")
 		mAbout := systray.AddMenuItem("About", "About Desktop Server")
 		systray.AddSeparator()
 		mQuit := systray.AddMenuItem("Quit", "Quit the application")
@@ -54,6 +65,8 @@ func onReady(ctx context.Context, onExit func()) func() {
 					go checkForUpdates()
 				case <-mUpdateFrontend.ClickedCh:
 					go updateFrontend()
+				case <-mETCDownload.ClickedCh:
+					go downloadETCData()
 				case <-mAbout.ClickedCh:
 					showAbout()
 				case <-mQuit.ClickedCh:
@@ -147,6 +160,34 @@ func updateFrontend() {
 	}
 
 	showMessage("Frontend Updated", "Frontend updated successfully! Please restart the application to apply changes.")
+}
+
+func downloadETCData() {
+	if scraperManager == nil {
+		showMessage("ETC Download Failed", "ETC scraper is not configured")
+		return
+	}
+
+	log.Println("Starting ETC data download...")
+	showMessage("ETC Download", "Starting ETC data download...")
+
+	// Get client (auto-starts etc_meisai_scraper.exe if needed)
+	client, err := scraperManager.GetClient()
+	if err != nil {
+		showMessage("ETC Download Failed", fmt.Sprintf("Failed to start ETC scraper: %v", err))
+		return
+	}
+
+	// Start async download
+	ctx := context.Background()
+	jobID, err := client.DownloadAsync(ctx, nil, "", "")
+	if err != nil {
+		showMessage("ETC Download Failed", fmt.Sprintf("Failed to start download: %v", err))
+		return
+	}
+
+	log.Printf("ETC download started, job ID: %s", jobID)
+	showMessage("ETC Download Started", fmt.Sprintf("Download job started (ID: %s)\n\nCheck the console for progress.", jobID))
 }
 
 func showAbout() {
