@@ -49,7 +49,7 @@ func onReady(ctx context.Context, onExit func()) func() {
 		// Version info (disabled menu items)
 		mBackendVersion := systray.AddMenuItem(fmt.Sprintf("Backend: %s", updater.CurrentVersion), "Current backend version")
 		mBackendVersion.Disable()
-		mFrontendVersion := systray.AddMenuItem(fmt.Sprintf("Frontend: %s", frontend.FrontendVersion), "Current frontend version")
+		mFrontendVersion := systray.AddMenuItem(fmt.Sprintf("Frontend: %s", frontend.GetFrontendVersion()), "Current frontend version")
 		mFrontendVersion.Disable()
 		systray.AddSeparator()
 
@@ -316,7 +316,7 @@ func pollJobStatus(client *etcscraper.Client, jobID string) {
 func showAbout() {
 	message := fmt.Sprintf("Desktop Server\n\nBackend: %s\nFrontend: %s\n\nLocal database management tool with gRPC-Web API\n\nRunning on: localhost:8080",
 		updater.CurrentVersion,
-		frontend.FrontendVersion)
+		frontend.GetFrontendVersion())
 	showMessage("About Desktop Server", message)
 }
 

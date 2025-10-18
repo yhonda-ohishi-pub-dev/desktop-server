@@ -8,13 +8,24 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"desktop-server/updater"
 )
 
 const (
 	FrontendRepo    = "yhonda-ohishi/desktop-server-front"
 	FrontendDistDir = "frontend/dist"
-	FrontendVersion = "v1.0.0" // Current frontend version
 )
+
+// GetFrontendVersion returns the frontend version, using desktop-server's version
+func GetFrontendVersion() string {
+	// Use desktop-server's version for frontend
+	if updater.Version != "" && updater.Version != "dev" {
+		return updater.Version
+	}
+	// Fallback to v1.0.0 for dev builds
+	return "v1.0.0"
+}
 
 // DownloadLatestRelease downloads the latest frontend release from GitHub
 func DownloadLatestRelease(forceUpdate bool) error {
@@ -26,28 +37,23 @@ func DownloadLatestRelease(forceUpdate bool) error {
 		}
 	}
 
-	fmt.Println("Downloading latest frontend release...")
+	version := GetFrontendVersion()
+	fmt.Printf("Downloading frontend release version %s...\n", version)
 
-	// Get latest release info
-	releaseURL := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", FrontendRepo)
-	resp, err := http.Get(releaseURL)
-	if err != nil {
-		return fmt.Errorf("failed to fetch release info: %w", err)
-	}
-	defer resp.Body.Close()
+	// Try versioned URL first (matching desktop-server version)
+	downloadURL := fmt.Sprintf("https://github.com/%s/releases/download/%s/desktop-server-frontend-%s.zip",
+		FrontendRepo, version, version)
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to fetch release info: status %d", resp.StatusCode)
-	}
-
-	// Parse release info to get download URL
-	// For simplicity, we'll construct the URL directly
-	// In production, you should parse the JSON response
-	downloadURL := fmt.Sprintf("https://github.com/%s/releases/latest/download/desktop-server-frontend-latest.zip", FrontendRepo)
-
-	// Try versioned URL if latest doesn't exist
+	// If versioned URL doesn't exist, try latest
 	if !urlExists(downloadURL) {
-		downloadURL = fmt.Sprintf("https://github.com/%s/releases/download/v1.0.0/desktop-server-frontend-v1.0.0.zip", FrontendRepo)
+		fmt.Printf("Version %s not found, trying latest release...\n", version)
+		downloadURL = fmt.Sprintf("https://github.com/%s/releases/latest/download/desktop-server-frontend-latest.zip", FrontendRepo)
+
+		// Final fallback to v1.0.0
+		if !urlExists(downloadURL) {
+			fmt.Println("Latest not found, falling back to v1.0.0...")
+			downloadURL = fmt.Sprintf("https://github.com/%s/releases/download/v1.0.0/desktop-server-frontend-v1.0.0.zip", FrontendRepo)
+		}
 	}
 
 	// Download the zip file
