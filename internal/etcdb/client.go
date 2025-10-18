@@ -32,12 +32,7 @@ func NewETCDBClient(address string) (*ETCDBClient, error) {
 
 // SaveETCRecord saves a single ETC record to database
 func (c *ETCDBClient) SaveETCRecord(ctx context.Context, record parser.ActualETCRecord) error {
-	// Parse and format dates
-	_, err := parseDate(record.EntryDate)
-	if err != nil {
-		return fmt.Errorf("invalid entry date: %w", err)
-	}
-
+	// Parse and format exit date (required)
 	exitDate, err := parseDate(record.ExitDate)
 	if err != nil {
 		return fmt.Errorf("invalid exit date: %w", err)
@@ -49,6 +44,17 @@ func (c *ETCDBClient) SaveETCRecord(ctx context.Context, record parser.ActualETC
 	// date_to_date: YYYY-MM-DD形式 (例: 2025-10-18)
 	exitDateOnly := exitDate.Format("2006-01-02")
 
+	// date_fr (入口日時) は optional - *string型
+	var dateFr *string
+	if record.EntryDate != "" && record.EntryTime != "" {
+		entryDate, err := parseDate(record.EntryDate)
+		if err != nil {
+			return fmt.Errorf("invalid entry date: %w", err)
+		}
+		entryDateTime := fmt.Sprintf("%sT%s:00Z", entryDate.Format("2006-01-02"), record.EntryTime)
+		dateFr = &entryDateTime
+	}
+
 	// ic_fr (入口IC) は optional - *string型
 	var icFr *string
 	if record.EntryIC != "" {
@@ -57,6 +63,7 @@ func (c *ETCDBClient) SaveETCRecord(ctx context.Context, record parser.ActualETC
 
 	req := &pb.CreateETCMeisaiRequest{
 		EtcMeisai: &pb.ETCMeisai{
+			DateFr:     dateFr,         // optional: 入口日時 (*string型)
 			DateTo:     exitDateTime,   // 必須: 出口日時
 			DateToDate: exitDateOnly,   // 必須: 出口日付のみ
 			IcFr:       icFr,           // optional: 入口IC (*string型、実データの22.3%が空)
