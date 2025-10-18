@@ -46,24 +46,46 @@ func (p *DownloadServiceProxy) DownloadSync(ctx context.Context, req *downloadpb
 		}, nil
 	}
 
-	// Call etc_meisai_scraper to download CSV
-	resp, err := client.GetDownloadService().DownloadSync(ctx, req)
+	// Use DownloadAsync internally (DownloadSync is not implemented in etc_meisai_scraper)
+	log.Printf("Starting async download job...")
+	jobResp, err := client.GetDownloadService().DownloadAsync(ctx, req)
 	if err != nil {
 		return &downloadpb.DownloadResponse{
 			Success: false,
-			Error:   fmt.Sprintf("download failed: %v", err),
+			Error:   fmt.Sprintf("failed to start download: %v", err),
 		}, err
 	}
 
+	if jobResp.Status == "error" || jobResp.Status == "failed" {
+		return &downloadpb.DownloadResponse{
+			Success: false,
+			Error:   jobResp.Message,
+		}, nil
+	}
+
+	log.Printf("Download job started with ID: %s", jobResp.JobId)
+
+	// Poll for job completion
+	totalRecords, err := p.waitForJobCompletion(ctx, client, jobResp.JobId)
+	if err != nil {
+		return &downloadpb.DownloadResponse{
+			Success: false,
+			Error:   fmt.Sprintf("download job failed: %v", err),
+		}, nil
+	}
+
+	log.Printf("Download completed successfully, total records: %d", totalRecords)
+
+	resp := &downloadpb.DownloadResponse{
+		Success:     true,
+		RecordCount: totalRecords,
+	}
+
 	// If mode is "db", process CSV and save to database
-	if req.Mode == "db" && resp.Success {
-		log.Printf("Processing CSV file and saving to database: %s", resp.CsvPath)
-
-		saved, errors := p.processAndSaveCSV(resp.CsvPath, req.Accounts)
-
+	if req.Mode == "db" {
+		log.Printf("Processing downloaded CSV files and saving to database")
+		saved, errors := p.processDownloadedCSVFiles(req.Accounts)
 		log.Printf("Database save completed: %d saved, %d errors", saved, errors)
-
-		// Update response with actual record count saved to DB
 		resp.RecordCount = int32(saved)
 	}
 
