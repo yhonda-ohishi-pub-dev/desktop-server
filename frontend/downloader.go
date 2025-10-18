@@ -8,8 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"desktop-server/updater"
 )
 
 const (
@@ -17,14 +15,10 @@ const (
 	FrontendDistDir = "frontend/dist"
 )
 
-// GetFrontendVersion returns the frontend version, using desktop-server's version
+// GetFrontendVersion returns the frontend version to download
 func GetFrontendVersion() string {
-	// Use desktop-server's version for frontend
-	if updater.Version != "" && updater.Version != "dev" {
-		return updater.Version
-	}
-	// Fallback to v1.0.0 for dev builds
-	return "v1.0.0"
+	// For display purposes only - actual download tries multiple versions
+	return "v1.2.0"
 }
 
 // DownloadLatestRelease downloads the latest frontend release from GitHub
@@ -37,23 +31,15 @@ func DownloadLatestRelease(forceUpdate bool) error {
 		}
 	}
 
-	version := GetFrontendVersion()
-	fmt.Printf("Downloading frontend release version %s...\n", version)
+	fmt.Println("Downloading latest frontend release...")
 
-	// Try versioned URL first (matching desktop-server version)
-	downloadURL := fmt.Sprintf("https://github.com/%s/releases/download/%s/desktop-server-frontend-%s.zip",
-		FrontendRepo, version, version)
+	// Try v1.2.0 first (current latest)
+	downloadURL := fmt.Sprintf("https://github.com/%s/releases/download/v1.2.0/desktop-server-frontend-v1.2.0.zip", FrontendRepo)
 
-	// If versioned URL doesn't exist, try v1.2.0 (current latest)
+	// Fallback to v1.0.0 if v1.2.0 doesn't exist
 	if !urlExists(downloadURL) {
-		fmt.Printf("Version %s not found, trying v1.2.0...\n", version)
-		downloadURL = fmt.Sprintf("https://github.com/%s/releases/download/v1.2.0/desktop-server-frontend-v1.2.0.zip", FrontendRepo)
-
-		// Final fallback to v1.0.0
-		if !urlExists(downloadURL) {
-			fmt.Println("v1.2.0 not found, falling back to v1.0.0...")
-			downloadURL = fmt.Sprintf("https://github.com/%s/releases/download/v1.0.0/desktop-server-frontend-v1.0.0.zip", FrontendRepo)
-		}
+		fmt.Println("v1.2.0 not found, falling back to v1.0.0...")
+		downloadURL = fmt.Sprintf("https://github.com/%s/releases/download/v1.0.0/desktop-server-frontend-v1.0.0.zip", FrontendRepo)
 	}
 
 	// Download the zip file
