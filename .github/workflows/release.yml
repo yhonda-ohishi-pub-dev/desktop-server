@@ -50,13 +50,9 @@ jobs:
           echo "VERSION=$version" >> $env:GITHUB_OUTPUT
 
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Desktop Server ${{ steps.get_version.outputs.VERSION }}
+          name: Desktop Server ${{ steps.get_version.outputs.VERSION }}
           body: |
             # Desktop Server ${{ steps.get_version.outputs.VERSION }}
 
@@ -89,25 +85,8 @@ jobs:
             See commits for details.
 
             **Full Changelog**: https://github.com/${{ github.repository }}/commits/${{ steps.get_version.outputs.VERSION }}
+          files: |
+            desktop-server.exe
+            proto/database.proto
           draft: false
           prerelease: false
-
-      - name: Upload Desktop Server Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./desktop-server.exe
-          asset_name: desktop-server.exe
-          asset_content_type: application/octet-stream
-
-      - name: Upload Proto File
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./proto/database.proto
-          asset_name: database.proto
-          asset_content_type: text/plain
