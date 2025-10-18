@@ -23,7 +23,7 @@ func NewDownloadServiceProxy(scraperManager *etcscraper.Manager) *DownloadServic
 }
 
 func (p *DownloadServiceProxy) DownloadSync(ctx context.Context, req *downloadpb.DownloadRequest) (*downloadpb.DownloadResponse, error) {
-	log.Printf("DownloadSync called with accounts: %v, from: %s, to: %s", req.Accounts, req.FromDate, req.ToDate)
+	log.Printf("DownloadSync called with accounts: %v, from: %s, to: %s, mode: %s", req.Accounts, req.FromDate, req.ToDate, req.Mode)
 
 	client, err := p.scraperManager.GetClient()
 	if err != nil {
@@ -33,8 +33,28 @@ func (p *DownloadServiceProxy) DownloadSync(ctx context.Context, req *downloadpb
 		}, nil
 	}
 
-	// Use the gRPC client directly
-	return client.GetDownloadService().DownloadSync(ctx, req)
+	// Call etc_meisai_scraper to download CSV
+	resp, err := client.GetDownloadService().DownloadSync(ctx, req)
+	if err != nil {
+		return &downloadpb.DownloadResponse{
+			Success: false,
+			Error:   fmt.Sprintf("download failed: %v", err),
+		}, err
+	}
+
+	// If mode is "db", process CSV and save to database
+	if req.Mode == "db" && resp.Success {
+		log.Printf("Processing CSV file and saving to database: %s", resp.CsvPath)
+
+		saved, errors := p.processAndSaveCSV(resp.CsvPath, req.Accounts)
+
+		log.Printf("Database save completed: %d saved, %d errors", saved, errors)
+
+		// Update response with actual record count saved to DB
+		resp.RecordCount = int32(saved)
+	}
+
+	return resp, nil
 }
 
 func (p *DownloadServiceProxy) DownloadAsync(ctx context.Context, req *downloadpb.DownloadRequest) (*downloadpb.DownloadJobResponse, error) {

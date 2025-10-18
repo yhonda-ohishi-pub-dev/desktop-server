@@ -481,7 +481,7 @@ func processDownloadedCSVFiles() {
 			accountID := strings.Split(entry.Name(), "_")[0]
 
 			// Process the CSV file
-			saved, errs, err := processCSVFile(csvFile, accountID)
+			saved, errs, err := ProcessCSVFile(csvFile, accountID)
 			if err != nil {
 				log.Printf("ERROR: Failed to process %s: %v", csvFile, err)
 				totalErrors++
@@ -503,7 +503,8 @@ func processDownloadedCSVFiles() {
 }
 
 // processCSVFile processes a single CSV file using etc_data_processor parser
-func processCSVFile(filePath, accountID string) (int, int, error) {
+// ProcessCSVFile processes a CSV file and saves records to database (exported for use in server package)
+func ProcessCSVFile(filePath, accountID string) (int, int, error) {
 	// Create parser
 	csvParser := parser.NewETCCSVParser()
 
