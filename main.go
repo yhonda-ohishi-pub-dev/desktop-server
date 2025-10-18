@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"desktop-server/frontend"
+	"desktop-server/internal/process"
 	"desktop-server/server"
 	"desktop-server/systray"
 )
@@ -18,6 +19,11 @@ func main() {
 	// Parse command line flags
 	updateFrontend := flag.Bool("update", false, "Force download latest frontend")
 	flag.Parse()
+
+	// Kill any existing instances of this application
+	if err := process.KillExistingProcesses(); err != nil {
+		log.Printf("Warning: Failed to kill existing processes: %v", err)
+	}
 
 	// Download frontend if missing or update requested
 	if err := frontend.DownloadLatestRelease(*updateFrontend); err != nil {
