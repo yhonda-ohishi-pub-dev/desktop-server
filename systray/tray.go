@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"desktop-server/frontend"
@@ -200,7 +201,25 @@ func downloadETCData() {
 	// Start async download
 	log.Println("Starting async download...")
 	ctx := context.Background()
-	jobID, err := client.DownloadAsync(ctx, nil, "", "")
+
+	// Get account info from environment variable
+	// Expected format: ETC_CORP_ACCOUNTS=["userid1:password1","userid2:password2"]
+	accountsEnv := os.Getenv("ETC_CORP_ACCOUNTS")
+	if accountsEnv == "" {
+		log.Println("ERROR: ETC_CORP_ACCOUNTS environment variable not set")
+		showMessage("ETC Download Failed", "ETC_CORP_ACCOUNTS environment variable not set.\n\nPlease set it with format: [\"userid:password\"]")
+		return
+	}
+
+	// Parse JSON array format
+	accountsEnv = strings.TrimSpace(accountsEnv)
+	accountsEnv = strings.Trim(accountsEnv, "[]")
+	accountsEnv = strings.ReplaceAll(accountsEnv, "\"", "")
+
+	accounts := strings.Split(accountsEnv, ",")
+	log.Printf("Found %d account(s) from ETC_CORP_ACCOUNTS", len(accounts))
+
+	jobID, err := client.DownloadAsync(ctx, accounts, "", "")
 	if err != nil {
 		log.Printf("ERROR: Failed to start download: %v", err)
 		showMessage("ETC Download Failed", fmt.Sprintf("Failed to start download: %v", err))

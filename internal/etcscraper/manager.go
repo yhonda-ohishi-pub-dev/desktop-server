@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"google.golang.org/grpc"
@@ -24,10 +25,28 @@ type Manager struct {
 
 // NewManager creates a new etc_meisai_scraper manager
 func NewManager(address, binaryPath string, autoStart bool) *Manager {
+	// Kill any existing etc_meisai_scraper processes on startup
+	killExistingProcesses()
+
 	return &Manager{
 		address:    address,
 		binaryPath: binaryPath,
 		autoStart:  autoStart,
+	}
+}
+
+// killExistingProcesses kills any running etc_meisai_scraper.exe processes
+func killExistingProcesses() {
+	if runtime.GOOS != "windows" {
+		return
+	}
+
+	cmd := exec.Command("taskkill", "/F", "/IM", "etc_meisai_scraper.exe")
+	if err := cmd.Run(); err != nil {
+		// Ignore errors - process might not be running
+		log.Printf("Note: No existing etc_meisai_scraper processes found (this is normal on first run)")
+	} else {
+		log.Println("Killed existing etc_meisai_scraper processes")
 	}
 }
 
@@ -55,13 +74,24 @@ func (m *Manager) Start() error {
 		return fmt.Errorf("etc_meisai_scraper.exe not found at %s", m.binaryPath)
 	}
 
+	// Create log file for etc_meisai_scraper
+	logPath := filepath.Join(filepath.Dir(m.binaryPath), "etc_meisai_scraper.log")
+	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to create log file: %w", err)
+	}
+
 	// Start process
-	log.Printf("Starting etc_meisai_scraper at %s", m.binaryPath)
+	log.Printf("Starting etc_meisai_scraper at %s (log: %s)", m.binaryPath, logPath)
 	m.process = exec.Command(m.binaryPath, "--grpc-port", "50052")
-	m.process.Stdout = os.Stdout
-	m.process.Stderr = os.Stderr
+	m.process.Stdout = logFile
+	m.process.Stderr = logFile
+
+	// Inherit environment variables from parent process
+	m.process.Env = os.Environ()
 
 	if err := m.process.Start(); err != nil {
+		logFile.Close()
 		return fmt.Errorf("failed to start etc_meisai_scraper: %w", err)
 	}
 
@@ -85,11 +115,14 @@ func (m *Manager) Stop() error {
 	if m.process != nil && m.process.ProcessState == nil {
 		log.Printf("Stopping etc_meisai_scraper (PID: %d)", m.process.Process.Pid)
 		if err := m.process.Process.Kill(); err != nil {
-			return fmt.Errorf("failed to stop etc_meisai_scraper: %w", err)
+			log.Printf("Warning: Failed to kill process via PID: %v", err)
 		}
 		m.process.Wait()
 		m.process = nil
 	}
+
+	// Also use taskkill to ensure all etc_meisai_scraper processes are killed
+	killExistingProcesses()
 
 	return nil
 }

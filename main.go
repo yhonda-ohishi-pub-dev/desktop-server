@@ -14,9 +14,20 @@ import (
 	"desktop-server/internal/process"
 	"desktop-server/server"
 	"desktop-server/systray"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found, using environment variables")
+	}
+
+	// Debug: Log ETC environment variables
+	log.Printf("ETC_HEADLESS=%s", os.Getenv("ETC_HEADLESS"))
+	log.Printf("ETC_CORP_ACCOUNTS=%s", os.Getenv("ETC_CORP_ACCOUNTS"))
+
 	// Parse command line flags
 	updateFrontend := flag.Bool("update", false, "Force download latest frontend")
 	flag.Parse()
