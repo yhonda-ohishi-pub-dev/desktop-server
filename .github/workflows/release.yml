@@ -79,8 +79,10 @@ jobs:
           echo "placeholder" > frontend/dist/.gitkeep
 
       - name: Download latest frontend
+        shell: powershell
         run: |
-          go run . -update
+          $version = "${{ github.ref }}".Replace("refs/tags/", "")
+          go run -ldflags="-X desktop-server/updater.Version=$version" . -update
 
       - name: Build for Windows (GUI mode)
         shell: powershell
