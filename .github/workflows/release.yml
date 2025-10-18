@@ -42,9 +42,11 @@ jobs:
           go run . -update
 
       - name: Build for Windows (GUI mode)
+        shell: powershell
         run: |
           go mod tidy
-          go build -ldflags="-H windowsgui" -o desktop-server.exe .
+          $version = "${{ github.ref }}".Replace("refs/tags/", "")
+          go build -ldflags="-H windowsgui -X desktop-server/updater.Version=$version" -o desktop-server.exe .
 
       - name: Get version from tag
         id: get_version

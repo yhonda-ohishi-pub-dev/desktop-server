@@ -13,9 +13,14 @@ import (
 
 const (
 	// Set your GitHub repository here
-	GitHubOwner = "yourusername"
+	GitHubOwner = "yhonda-ohishi-pub-dev"
 	GitHubRepo  = "desktop-server"
-	CurrentVersion = "v1.0.0"
+)
+
+var (
+	// Version is set via ldflags during build
+	Version        = "dev"
+	CurrentVersion = Version // Use injected version
 )
 
 type GitHubRelease struct {

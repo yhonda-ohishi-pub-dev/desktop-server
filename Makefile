@@ -11,13 +11,15 @@ clean:
 	rm -rf dist/
 	rm -rf frontend/dist/
 
+VERSION ?= dev
+
 build: proto
 	go mod tidy
-	go build -o desktop-server.exe .
+	go build -ldflags="-X desktop-server/updater.Version=$(VERSION)" -o desktop-server.exe .
 
 build-gui: proto
 	go mod tidy
-	go build -ldflags="-H windowsgui" -o desktop-server.exe .
+	go build -ldflags="-H windowsgui -X desktop-server/updater.Version=$(VERSION)" -o desktop-server.exe .
 
 run: build
 	./desktop-server.exe
