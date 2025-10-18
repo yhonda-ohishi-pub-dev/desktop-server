@@ -7,6 +7,7 @@ import (
 
 	pb "desktop-server/proto"
 
+	"github.com/yhonda-ohishi/db_service/src/registry"
 	"google.golang.org/grpc"
 )
 
@@ -29,7 +30,12 @@ func (s *GRPCServer) Start(addr string) error {
 	}
 
 	s.grpcServer = grpc.NewServer()
+
+	// Register desktop-server's own database service
 	pb.RegisterDatabaseServiceServer(s.grpcServer, s)
+
+	// Register all db_service services automatically
+	registry.Register(s.grpcServer)
 
 	fmt.Printf("gRPC server listening on %s\n", addr)
 	return s.grpcServer.Serve(lis)
