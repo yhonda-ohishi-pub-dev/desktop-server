@@ -146,14 +146,9 @@ func checkForUpdates() {
 		return
 	}
 
-	// New version available
-	showNotification("Desktop Server", fmt.Sprintf("New version %s available!", updateInfo.LatestVersion))
-	message := fmt.Sprintf("A new version is available!\n\nCurrent: %s\nLatest: %s\n\nWould you like to download it?",
-		updateInfo.CurrentVersion, updateInfo.LatestVersion)
-
-	if confirmUpdate(message) {
-		performUpdate(updateInfo.DownloadURL)
-	}
+	// New version available - download automatically
+	showNotification("Desktop Server", fmt.Sprintf("New version %s available! Downloading...", updateInfo.LatestVersion))
+	performUpdate(updateInfo.DownloadURL)
 }
 
 func performUpdate(downloadURL string) {
@@ -168,21 +163,19 @@ func performUpdate(downloadURL string) {
 		return
 	}
 
-	showNotification("Desktop Server", "Update downloaded successfully")
+	showNotification("Desktop Server", "Update downloaded. Applying and restarting...")
 
-	if confirmUpdate("Update downloaded. Apply update and restart?") {
-		showNotification("Desktop Server", "Applying update and restarting...")
-
-		if err := updater.ApplyUpdate(tmpFile); err != nil {
-			showNotification("Update Failed", fmt.Sprintf("Failed to apply: %v", err))
-			showMessage("Update Failed", fmt.Sprintf("Failed to apply update: %v", err))
-			return
-		}
-
-		// Restart application
-		updater.RestartApplication()
-		os.Exit(0)
+	if err := updater.ApplyUpdate(tmpFile); err != nil {
+		showNotification("Update Failed", fmt.Sprintf("Failed to apply: %v", err))
+		showMessage("Update Failed", fmt.Sprintf("Failed to apply update: %v", err))
+		return
 	}
+
+	showNotification("Desktop Server", "Restarting...")
+
+	// Restart application
+	updater.RestartApplication()
+	os.Exit(0)
 }
 
 func updateFrontend() {
@@ -426,18 +419,6 @@ $toast = New-Object Windows.UI.Notifications.ToastNotification $xml
 	} else {
 		fmt.Printf("NOTIFICATION: %s - %s\n", title, message)
 	}
-}
-
-func confirmUpdate(message string) bool {
-	// For simplicity, auto-confirm on non-Windows
-	if runtime.GOOS != "windows" {
-		return true
-	}
-
-	// Windows: use simple confirmation (you can improve this with proper dialog)
-	// For now, just return true (auto-update)
-	fmt.Println(message)
-	return true
 }
 
 func isETCScraperAvailable() bool {
