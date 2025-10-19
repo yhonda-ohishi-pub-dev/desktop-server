@@ -55,6 +55,7 @@ func onReady(ctx context.Context, onExit func()) func() {
 
 		mCheckUpdate := systray.AddMenuItem("Update Backend", "Check for new backend version")
 		mUpdateFrontend := systray.AddMenuItem("Update Frontend", "Download latest frontend")
+		mUpdateScraper := systray.AddMenuItem("Update ETC Scraper", "Download latest etc_meisai_scraper")
 		systray.AddSeparator()
 		mETCDownload := systray.AddMenuItem("Download ETC Data", "Download ETC meisai data")
 
@@ -84,6 +85,8 @@ func onReady(ctx context.Context, onExit func()) func() {
 					go checkForUpdates()
 				case <-mUpdateFrontend.ClickedCh:
 					go updateFrontend()
+				case <-mUpdateScraper.ClickedCh:
+					go updateETCScraper()
 				case <-mETCDownload.ClickedCh:
 					go downloadETCData()
 				case <-mAbout.ClickedCh:
@@ -179,6 +182,18 @@ func updateFrontend() {
 	}
 
 	showMessage("Frontend Updated", "Frontend updated successfully! Please restart the application to apply changes.")
+}
+
+func updateETCScraper() {
+	fmt.Println("Updating ETC scraper...")
+
+	err := updater.UpdateETCScraper()
+	if err != nil {
+		showMessage("ETC Scraper Update Failed", fmt.Sprintf("Failed to update ETC scraper: %v", err))
+		return
+	}
+
+	showMessage("ETC Scraper Updated", "ETC scraper updated successfully!")
 }
 
 func downloadETCData() {

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -84,7 +83,8 @@ func CheckForUpdates() (*UpdateInfo, error) {
 
 		// Find the appropriate asset for current OS
 		for _, asset := range release.Assets {
-			if strings.Contains(asset.Name, "windows") || strings.HasSuffix(asset.Name, ".exe") {
+			// Specifically look for desktop-server.exe
+			if asset.Name == "desktop-server.exe" {
 				info.DownloadURL = asset.BrowserDownloadURL
 				break
 			}
@@ -182,4 +182,97 @@ func RestartApplication() error {
 	})
 
 	return err
+}
+
+// UpdateETCScraper downloads the latest etc_meisai_scraper.exe from GitHub releases
+func UpdateETCScraper() error {
+	// Get latest release info
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", GitHubOwner, GitHubRepo)
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Accept", "application/vnd.github.v3+json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to fetch release info: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("GitHub API returned status: %d", resp.StatusCode)
+	}
+
+	var release GitHubRelease
+	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+		return fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	// Find etc_meisai_scraper.exe asset
+	var downloadURL string
+	for _, asset := range release.Assets {
+		if asset.Name == "etc_meisai_scraper.exe" {
+			downloadURL = asset.BrowserDownloadURL
+			break
+		}
+	}
+
+	if downloadURL == "" {
+		return fmt.Errorf("etc_meisai_scraper.exe not found in release assets")
+	}
+
+	// Download the file
+	client = &http.Client{Timeout: 5 * time.Minute}
+	resp, err = client.Get(downloadURL)
+	if err != nil {
+		return fmt.Errorf("failed to download: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("download failed with status: %d", resp.StatusCode)
+	}
+
+	// Get current executable directory
+	currentExe, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("failed to get current executable path: %w", err)
+	}
+
+	targetPath := filepath.Join(filepath.Dir(currentExe), "etc_meisai_scraper.exe")
+
+	// Create temp file first
+	tmpFile := targetPath + ".tmp"
+	out, err := os.Create(tmpFile)
+	if err != nil {
+		return fmt.Errorf("failed to create temp file: %w", err)
+	}
+
+	_, err = io.Copy(out, resp.Body)
+	out.Close()
+	if err != nil {
+		os.Remove(tmpFile)
+		return fmt.Errorf("failed to write file: %w", err)
+	}
+
+	// Backup existing file if it exists
+	if _, err := os.Stat(targetPath); err == nil {
+		backupPath := targetPath + ".bak"
+		os.Remove(backupPath) // Remove old backup if exists
+		if err := os.Rename(targetPath, backupPath); err != nil {
+			os.Remove(tmpFile)
+			return fmt.Errorf("failed to backup existing file: %w", err)
+		}
+	}
+
+	// Move temp file to final location
+	if err := os.Rename(tmpFile, targetPath); err != nil {
+		return fmt.Errorf("failed to move file to final location: %w", err)
+	}
+
+	return nil
 }
