@@ -203,7 +203,11 @@ func performUpdate(downloadURL string) {
 		return
 	}
 
-	log.Println("UPDATE: Update script created. Restarting application...")
+	// Get exe path to log script location
+	exePath, _ := os.Executable()
+	scriptPath := exePath + "_update.ps1"
+	log.Printf("UPDATE: Update script created at %s", scriptPath)
+	log.Println("UPDATE: Restarting application...")
 	showNotification("Desktop Server", "Restarting...")
 
 	// Restart application

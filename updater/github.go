@@ -154,7 +154,11 @@ func ApplyUpdate(newExePath string) error {
 function Write-Log {
     param($Message)
     $timestamp = Get-Date -Format "yyyy/MM/dd HH:mm:ss"
-    Add-Content -Path "%s" -Value "$timestamp $Message"
+    $logDir = Split-Path -Parent '%s'
+    if (-not (Test-Path $logDir)) {
+        New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+    }
+    Add-Content -Path '%s' -Value "$timestamp $Message" -Encoding UTF8
 }
 
 Write-Log "UPDATE SCRIPT: Starting..."
@@ -164,9 +168,9 @@ Write-Log "UPDATE SCRIPT: Waiting 2 seconds for process to exit..."
 Start-Sleep -Seconds 2
 
 # Backup old exe
-$oldExe = "%s"
-$backupExe = "%s.bak"
-$newExe = "%s"
+$oldExe = '%s'
+$backupExe = '%s.bak'
+$newExe = '%s'
 
 Write-Log "UPDATE SCRIPT: Old exe: $oldExe"
 Write-Log "UPDATE SCRIPT: New exe: $newExe"
@@ -197,9 +201,12 @@ try {
 Start-Sleep -Seconds 1
 Write-Log "UPDATE SCRIPT: Deleting script..."
 Remove-Item $PSCommandPath -Force
-`, logPath, currentExe, currentExe, newExePath)
+`, logPath, logPath, currentExe, currentExe, newExePath)
 
-	if err := os.WriteFile(psScript, []byte(scriptContent), 0755); err != nil {
+	// Write with UTF-8 BOM so PowerShell can correctly read Japanese paths
+	utf8BOM := []byte{0xEF, 0xBB, 0xBF}
+	scriptBytes := append(utf8BOM, []byte(scriptContent)...)
+	if err := os.WriteFile(psScript, scriptBytes, 0755); err != nil {
 		return fmt.Errorf("failed to create update script: %w", err)
 	}
 
@@ -233,11 +240,32 @@ func RestartApplication() error {
 
 	// Execute the update PowerShell script
 	psScript := executable + "_update.ps1"
+	logPath := filepath.Join(filepath.Dir(executable), "logs", "update-script.log")
 
-	// Start PowerShell script in hidden window
-	cmd := exec.Command("powershell", "-WindowStyle", "Hidden", "-ExecutionPolicy", "Bypass", "-File", psScript)
+	// Create a wrapper script that redirects output to log file
+	wrapperScript := executable + "_update_wrapper.ps1"
+	wrapperContent := fmt.Sprintf(`
+# Ensure logs directory exists
+$logsDir = Split-Path -Parent '%s'
+if (-not (Test-Path $logsDir)) {
+    New-Item -ItemType Directory -Force -Path $logsDir | Out-Null
+}
+
+# Run the actual update script and capture all output
+& '%s' *>&1 | Tee-Object -FilePath '%s'
+`, logPath, psScript, logPath)
+
+	// Write with UTF-8 BOM so PowerShell can correctly read Japanese paths
+	utf8BOM := []byte{0xEF, 0xBB, 0xBF}
+	wrapperBytes := append(utf8BOM, []byte(wrapperContent)...)
+	if err := os.WriteFile(wrapperScript, wrapperBytes, 0755); err != nil {
+		return fmt.Errorf("failed to create wrapper script: %w", err)
+	}
+
+	// Start wrapper PowerShell script in hidden window
+	cmd := exec.Command("powershell", "-WindowStyle", "Hidden", "-ExecutionPolicy", "Bypass", "-File", wrapperScript)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP | 0x08000000, // CREATE_NO_WINDOW
+		CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP,
 	}
 
 	if err := cmd.Start(); err != nil {
