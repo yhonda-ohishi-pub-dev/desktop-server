@@ -143,14 +143,15 @@ func ApplyUpdate(newExePath string) error {
 	// 1. Wait for current process to exit
 	// 2. Backup current exe
 	// 3. Copy new exe to current location
-	// 4. Start new exe
+	// 4. Start new exe (detached, no window)
 	// 5. Delete batch script
 	scriptContent := fmt.Sprintf(`@echo off
 timeout /t 2 /nobreak > nul
 if exist "%s.bak" del "%s.bak"
-move "%s" "%s.bak"
-move "%s" "%s"
-start "" "%s"
+move /Y "%s" "%s.bak"
+move /Y "%s" "%s"
+start "" /B "%s"
+timeout /t 1 /nobreak > nul
 del "%%~f0"
 `, currentExe, currentExe, currentExe, currentExe, newExePath, currentExe, currentExe)
 
