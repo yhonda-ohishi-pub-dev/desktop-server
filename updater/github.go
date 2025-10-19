@@ -6,7 +6,9 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"syscall"
 	"time"
 )
 
@@ -127,27 +129,34 @@ func DownloadUpdate(downloadURL string) (string, error) {
 }
 
 // ApplyUpdate replaces the current executable with the new one
+// Since the exe is running, we create a batch script to do the update after exit
 func ApplyUpdate(newExePath string) error {
 	currentExe, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("failed to get current executable path: %w", err)
 	}
 
-	// Backup current executable
-	backupPath := currentExe + ".bak"
-	if err := os.Rename(currentExe, backupPath); err != nil {
-		return fmt.Errorf("failed to backup current executable: %w", err)
-	}
+	// Create a batch script to perform the update
+	batchScript := currentExe + "_update.bat"
 
-	// Copy new executable
-	if err := copyFile(newExePath, currentExe); err != nil {
-		// Restore backup on failure
-		os.Rename(backupPath, currentExe)
-		return fmt.Errorf("failed to copy new executable: %w", err)
-	}
+	// Batch script content:
+	// 1. Wait for current process to exit
+	// 2. Backup current exe
+	// 3. Copy new exe to current location
+	// 4. Start new exe
+	// 5. Delete batch script
+	scriptContent := fmt.Sprintf(`@echo off
+timeout /t 2 /nobreak > nul
+if exist "%s.bak" del "%s.bak"
+move "%s" "%s.bak"
+move "%s" "%s"
+start "" "%s"
+del "%%~f0"
+`, currentExe, currentExe, currentExe, currentExe, newExePath, currentExe, currentExe)
 
-	// Remove backup
-	os.Remove(backupPath)
+	if err := os.WriteFile(batchScript, []byte(scriptContent), 0755); err != nil {
+		return fmt.Errorf("failed to create update script: %w", err)
+	}
 
 	return nil
 }
@@ -170,18 +179,27 @@ func copyFile(src, dst string) error {
 }
 
 // RestartApplication restarts the application after update
+// This executes the update batch script and exits the current process
 func RestartApplication() error {
 	executable, err := os.Executable()
 	if err != nil {
 		return err
 	}
 
-	// Start new instance
-	_, err = os.StartProcess(executable, os.Args, &os.ProcAttr{
-		Files: []*os.File{os.Stdin, os.Stdout, os.Stderr},
-	})
+	// Execute the update batch script
+	batchScript := executable + "_update.bat"
 
-	return err
+	// Start the batch script in a detached process
+	cmd := exec.Command("cmd", "/C", batchScript)
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP | 0x08000000, // CREATE_NO_WINDOW
+	}
+
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to start update script: %w", err)
+	}
+
+	return nil
 }
 
 // UpdateETCScraper downloads the latest etc_meisai_scraper.exe from GitHub releases
