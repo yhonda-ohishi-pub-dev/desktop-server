@@ -20,6 +20,9 @@ desktop-sv/generated/
 frontend/dist/
 frontend_tmp.zip
 
+# Downloads directory
+downloads/
+
 # Proto generated files (tracked in repo)
 # Uncomment if you want to regenerate proto files
 # proto/*.pb.go
@@ -47,3 +50,4 @@ Thumbs.db
 
 # Logs
 *.log
+logs/

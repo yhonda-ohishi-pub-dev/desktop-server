@@ -4,10 +4,13 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
+	"time"
 
 	"desktop-server/frontend"
 	"desktop-server/internal/etcscraper"
@@ -18,7 +21,48 @@ import (
 	"github.com/joho/godotenv"
 )
 
+func setupLogging() (*os.File, error) {
+	// Get executable directory
+	exePath, err := os.Executable()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get executable path: %w", err)
+	}
+	exeDir := filepath.Dir(exePath)
+
+	// Create logs directory if it doesn't exist
+	logsDir := filepath.Join(exeDir, "logs")
+	if err := os.MkdirAll(logsDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create logs directory: %w", err)
+	}
+
+	// Create log file with timestamp
+	logFileName := fmt.Sprintf("desktop-server_%s.log", time.Now().Format("2006-01-02"))
+	logFilePath := filepath.Join(logsDir, logFileName)
+
+	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open log file: %w", err)
+	}
+
+	// Set log output to both file and stdout
+	multiWriter := io.MultiWriter(os.Stdout, logFile)
+	log.SetOutput(multiWriter)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	return logFile, nil
+}
+
 func main() {
+	// Setup file logging
+	logFile, err := setupLogging()
+	if err != nil {
+		log.Printf("Warning: Failed to setup file logging: %v", err)
+		// Continue without file logging
+	} else {
+		defer logFile.Close()
+		log.Println("Logging initialized successfully")
+	}
+
 	// Load .env file
 	if err := godotenv.Load(); err != nil {
 		log.Println("Warning: .env file not found, using environment variables")
