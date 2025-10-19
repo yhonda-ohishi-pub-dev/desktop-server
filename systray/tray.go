@@ -131,18 +131,23 @@ func openBrowser(url string) {
 func checkForUpdates() {
 	fmt.Println("Checking for updates...")
 
+	showNotification("Desktop Server", "Checking for updates...")
+
 	updateInfo, err := updater.CheckForUpdates()
 	if err != nil {
+		showNotification("Update Check Failed", fmt.Sprintf("Failed to check for updates: %v", err))
 		showMessage("Update Check Failed", fmt.Sprintf("Failed to check for updates: %v", err))
 		return
 	}
 
 	if !updateInfo.Available {
+		showNotification("Desktop Server", fmt.Sprintf("You are running the latest version (%s)", updateInfo.CurrentVersion))
 		showMessage("No Updates Available", fmt.Sprintf("You are running the latest version (%s)", updateInfo.CurrentVersion))
 		return
 	}
 
 	// New version available
+	showNotification("Desktop Server", fmt.Sprintf("New version %s available!", updateInfo.LatestVersion))
 	message := fmt.Sprintf("A new version is available!\n\nCurrent: %s\nLatest: %s\n\nWould you like to download it?",
 		updateInfo.CurrentVersion, updateInfo.LatestVersion)
 
@@ -154,14 +159,22 @@ func checkForUpdates() {
 func performUpdate(downloadURL string) {
 	fmt.Println("Downloading update...")
 
+	showNotification("Desktop Server", "Downloading update...")
+
 	tmpFile, err := updater.DownloadUpdate(downloadURL)
 	if err != nil {
+		showNotification("Update Failed", fmt.Sprintf("Failed to download: %v", err))
 		showMessage("Update Failed", fmt.Sprintf("Failed to download update: %v", err))
 		return
 	}
 
+	showNotification("Desktop Server", "Update downloaded successfully")
+
 	if confirmUpdate("Update downloaded. Apply update and restart?") {
+		showNotification("Desktop Server", "Applying update and restarting...")
+
 		if err := updater.ApplyUpdate(tmpFile); err != nil {
+			showNotification("Update Failed", fmt.Sprintf("Failed to apply: %v", err))
 			showMessage("Update Failed", fmt.Sprintf("Failed to apply update: %v", err))
 			return
 		}
@@ -175,17 +188,23 @@ func performUpdate(downloadURL string) {
 func updateFrontend() {
 	fmt.Println("Updating frontend...")
 
+	showNotification("Desktop Server", "Updating frontend...")
+
 	err := frontend.DownloadLatestRelease(true)
 	if err != nil {
+		showNotification("Frontend Update Failed", fmt.Sprintf("Failed: %v", err))
 		showMessage("Frontend Update Failed", fmt.Sprintf("Failed to update frontend: %v", err))
 		return
 	}
 
+	showNotification("Desktop Server", "Frontend updated successfully!")
 	showMessage("Frontend Updated", "Frontend updated successfully! Please restart the application to apply changes.")
 }
 
 func updateETCScraper() {
 	fmt.Println("Updating ETC scraper...")
+
+	showNotification("Desktop Server", "Stopping ETC scraper...")
 
 	// Stop etc_meisai_scraper before updating
 	if scraperManager != nil {
@@ -195,9 +214,12 @@ func updateETCScraper() {
 		}
 	}
 
+	showNotification("Desktop Server", "Downloading ETC scraper...")
+
 	// Perform update
 	err := updater.UpdateETCScraper()
 	if err != nil {
+		showNotification("ETC Scraper Update Failed", fmt.Sprintf("Failed: %v", err))
 		showMessage("ETC Scraper Update Failed", fmt.Sprintf("Failed to update ETC scraper: %v", err))
 		// Restart scraper even if update failed
 		if scraperManager != nil {
@@ -206,15 +228,19 @@ func updateETCScraper() {
 		return
 	}
 
+	showNotification("Desktop Server", "Restarting ETC scraper...")
+
 	// Restart etc_meisai_scraper
 	if scraperManager != nil {
 		log.Println("Restarting etc_meisai_scraper with new version...")
 		if err := scraperManager.Start(); err != nil {
+			showNotification("ETC Scraper Update Warning", "Update succeeded but restart failed")
 			showMessage("ETC Scraper Update Warning", fmt.Sprintf("Update succeeded but restart failed: %v\n\nPlease restart desktop-server manually.", err))
 			return
 		}
 	}
 
+	showNotification("Desktop Server", "ETC scraper updated successfully!")
 	showMessage("ETC Scraper Updated", "ETC scraper updated successfully and restarted!")
 }
 
@@ -364,6 +390,41 @@ func showMessage(title, message string) {
 		cmd.Run()
 	} else {
 		fmt.Printf("%s: %s\n", title, message)
+	}
+}
+
+func showNotification(title, message string) {
+	// Windows toast notification using PowerShell
+	if runtime.GOOS == "windows" {
+		// Escape single quotes in message
+		escapedMessage := message
+		escapedMessage = fmt.Sprintf("%s", escapedMessage)
+
+		script := fmt.Sprintf(`
+[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
+[Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null
+
+$template = @"
+<toast>
+    <visual>
+        <binding template="ToastText02">
+            <text id="1">%s</text>
+            <text id="2">%s</text>
+        </binding>
+    </visual>
+</toast>
+"@
+
+$xml = New-Object Windows.Data.Xml.Dom.XmlDocument
+$xml.LoadXml($template)
+$toast = New-Object Windows.UI.Notifications.ToastNotification $xml
+[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("Desktop Server").Show($toast)
+`, title, escapedMessage)
+
+		cmd := exec.Command("powershell", "-Command", script)
+		cmd.Run()
+	} else {
+		fmt.Printf("NOTIFICATION: %s - %s\n", title, message)
 	}
 }
 
