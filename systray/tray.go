@@ -132,69 +132,84 @@ func openBrowser(url string) {
 }
 
 func checkForUpdates() {
-	fmt.Println("Checking for updates...")
+	log.Println("UPDATE: Checking for updates...")
 
 	showNotification("Desktop Server", "Checking for updates...")
 
 	updateInfo, err := updater.CheckForUpdates()
 	if err != nil {
+		log.Printf("UPDATE: Failed to check for updates: %v", err)
 		showNotification("Update Check Failed", fmt.Sprintf("Failed to check for updates: %v", err))
 		showMessage("Update Check Failed", fmt.Sprintf("Failed to check for updates: %v", err))
 		return
 	}
 
 	if !updateInfo.Available {
+		log.Printf("UPDATE: Already running latest version (%s)", updateInfo.CurrentVersion)
 		showNotification("Desktop Server", fmt.Sprintf("You are running the latest version (%s)", updateInfo.CurrentVersion))
 		showMessage("No Updates Available", fmt.Sprintf("You are running the latest version (%s)", updateInfo.CurrentVersion))
 		return
 	}
 
 	// New version available - download automatically
+	log.Printf("UPDATE: New version %s available! Current: %s", updateInfo.LatestVersion, updateInfo.CurrentVersion)
 	showNotification("Desktop Server", fmt.Sprintf("New version %s available! Downloading...", updateInfo.LatestVersion))
 	performUpdate(updateInfo.DownloadURL)
 }
 
 func forceUpdate() {
-	fmt.Println("Force updating to latest version...")
+	log.Println("UPDATE: Force updating to latest version...")
 
 	showNotification("Desktop Server", "Force downloading latest version...")
 
 	updateInfo, err := updater.CheckForUpdates()
 	if err != nil {
+		log.Printf("UPDATE: Failed to check for updates: %v", err)
 		showNotification("Update Check Failed", fmt.Sprintf("Failed to check for updates: %v", err))
 		showMessage("Update Check Failed", fmt.Sprintf("Failed to check for updates: %v", err))
 		return
 	}
 
 	// Download regardless of version
+	log.Printf("UPDATE: Force downloading version %s (current: %s)", updateInfo.LatestVersion, updateInfo.CurrentVersion)
 	showNotification("Desktop Server", fmt.Sprintf("Downloading version %s...", updateInfo.LatestVersion))
 	performUpdate(updateInfo.DownloadURL)
 }
 
 func performUpdate(downloadURL string) {
-	fmt.Println("Downloading update...")
+	log.Printf("UPDATE: Downloading from %s", downloadURL)
 
 	showNotification("Desktop Server", "Downloading update...")
 
 	tmpFile, err := updater.DownloadUpdate(downloadURL)
 	if err != nil {
+		log.Printf("UPDATE: Download failed: %v", err)
 		showNotification("Update Failed", fmt.Sprintf("Failed to download: %v", err))
 		showMessage("Update Failed", fmt.Sprintf("Failed to download update: %v", err))
 		return
 	}
 
+	log.Printf("UPDATE: Downloaded to %s", tmpFile)
 	showNotification("Desktop Server", "Update downloaded. Applying and restarting...")
 
 	if err := updater.ApplyUpdate(tmpFile); err != nil {
+		log.Printf("UPDATE: Apply failed: %v", err)
 		showNotification("Update Failed", fmt.Sprintf("Failed to apply: %v", err))
 		showMessage("Update Failed", fmt.Sprintf("Failed to apply update: %v", err))
 		return
 	}
 
+	log.Println("UPDATE: Update script created. Restarting application...")
 	showNotification("Desktop Server", "Restarting...")
 
 	// Restart application
-	updater.RestartApplication()
+	if err := updater.RestartApplication(); err != nil {
+		log.Printf("UPDATE: Failed to start update script: %v", err)
+		showMessage("Restart Failed", fmt.Sprintf("Failed to restart: %v", err))
+		return
+	}
+
+	log.Println("UPDATE: Update script started. Exiting...")
 	os.Exit(0)
 }
 
