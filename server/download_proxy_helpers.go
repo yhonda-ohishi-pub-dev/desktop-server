@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -117,21 +118,27 @@ func (p *DownloadServiceProxy) processDownloadedCSVFiles(accounts []string) (sav
 	}
 
 	// Find the most recent folder (folders are named with timestamp)
-	var latestFolder string
-	for i := len(entries) - 1; i >= 0; i-- {
-		entry := entries[i]
-		if entry.IsDir() {
-			latestFolder = filepath.Join(downloadDir, entry.Name())
-			break
+	// Sort folders by name (timestamp) in descending order
+	var folders []string
+	for _, entry := range entries {
+		// Only include folders that start with "202" (year prefix for timestamp folders)
+		if entry.IsDir() && strings.HasPrefix(entry.Name(), "202") {
+			folders = append(folders, entry.Name())
 		}
 	}
 
-	if latestFolder == "" {
+	if len(folders) == 0 {
 		log.Printf("No download folders found")
 		return 0, 1
 	}
 
-	log.Printf("Processing CSV files in folder: %s", latestFolder)
+	// Sort in descending order (newest first)
+	sort.Slice(folders, func(i, j int) bool {
+		return folders[i] > folders[j]
+	})
+
+	latestFolder := filepath.Join(downloadDir, folders[0])
+	log.Printf("Latest folder: %s", latestFolder)
 
 	// Find CSV files in the folder
 	csvFiles, err := filepath.Glob(filepath.Join(latestFolder, "*.csv"))

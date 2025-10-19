@@ -1,0 +1,389 @@
+syntax = "proto3";
+
+package ryohi;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/yhonda-ohishi/db_service/src/proto";
+
+// DTakoUriageKeihiサービス - 経費精算データ管理
+service DTakoUriageKeihiService {
+  // 経費精算データ作成
+  rpc Create(CreateDTakoUriageKeihiRequest) returns (DTakoUriageKeihiResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/db/dtako-uriage-keihi"
+      body: "dtako_uriage_keihi"
+    };
+  }
+  // 経費精算データ取得
+  rpc Get(GetDTakoUriageKeihiRequest) returns (DTakoUriageKeihiResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/db/dtako-uriage-keihi/{srch_id}"
+    };
+  }
+  // 経費精算データ更新
+  rpc Update(UpdateDTakoUriageKeihiRequest) returns (DTakoUriageKeihiResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/db/dtako-uriage-keihi/{dtako_uriage_keihi.srch_id}"
+      body: "dtako_uriage_keihi"
+    };
+  }
+  // 経費精算データ削除
+  rpc Delete(DeleteDTakoUriageKeihiRequest) returns (Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/db/dtako-uriage-keihi/{srch_id}"
+    };
+  }
+  // 経費精算データ一覧取得
+  rpc List(ListDTakoUriageKeihiRequest) returns (ListDTakoUriageKeihiResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/db/dtako-uriage-keihi"
+    };
+  }
+}
+
+// ETCMeisaiサービス - ETC明細データ管理
+service ETCMeisaiService {
+  // ETC明細データ作成
+  rpc Create(CreateETCMeisaiRequest) returns (ETCMeisaiResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/db/etc-meisai"
+      body: "etc_meisai"
+    };
+  }
+  // ETC明細データ取得
+  rpc Get(GetETCMeisaiRequest) returns (ETCMeisaiResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/db/etc-meisai/{id}"
+    };
+  }
+  // ETC明細データ更新
+  rpc Update(UpdateETCMeisaiRequest) returns (ETCMeisaiResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/db/etc-meisai/{etc_meisai.id}"
+      body: "etc_meisai"
+    };
+  }
+  // ETC明細データ削除
+  rpc Delete(DeleteETCMeisaiRequest) returns (Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/db/etc-meisai/{id}"
+    };
+  }
+  // ETC明細データ一覧取得
+  rpc List(ListETCMeisaiRequest) returns (ListETCMeisaiResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/db/etc-meisai"
+    };
+  }
+}
+
+// DTakoFerryRowsサービス - フェリー運行データ管理
+service DTakoFerryRowsService {
+  // フェリー運行データ作成
+  rpc Create(CreateDTakoFerryRowsRequest) returns (DTakoFerryRowsResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/db/dtako-ferry-rows"
+      body: "dtako_ferry_rows"
+    };
+  }
+  // フェリー運行データ取得
+  rpc Get(GetDTakoFerryRowsRequest) returns (DTakoFerryRowsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/db/dtako-ferry-rows/{id}"
+    };
+  }
+  // フェリー運行データ更新
+  rpc Update(UpdateDTakoFerryRowsRequest) returns (DTakoFerryRowsResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/db/dtako-ferry-rows/{dtako_ferry_rows.id}"
+      body: "dtako_ferry_rows"
+    };
+  }
+  // フェリー運行データ削除
+  rpc Delete(DeleteDTakoFerryRowsRequest) returns (Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/db/dtako-ferry-rows/{id}"
+    };
+  }
+  // フェリー運行データ一覧取得
+  rpc List(ListDTakoFerryRowsRequest) returns (ListDTakoFerryRowsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/db/dtako-ferry-rows"
+    };
+  }
+}
+
+// ETCMeisaiMappingサービス - ETC明細とDTakoRowsのマッピング管理
+service ETCMeisaiMappingService {
+  // マッピング作成
+  rpc Create(CreateETCMeisaiMappingRequest) returns (ETCMeisaiMappingResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/db/etc-meisai-mapping"
+      body: "etc_meisai_mapping"
+    };
+  }
+  // マッピング取得
+  rpc Get(GetETCMeisaiMappingRequest) returns (ETCMeisaiMappingResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/db/etc-meisai-mapping/{id}"
+    };
+  }
+  // マッピング更新
+  rpc Update(UpdateETCMeisaiMappingRequest) returns (ETCMeisaiMappingResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/db/etc-meisai-mapping/{etc_meisai_mapping.id}"
+      body: "etc_meisai_mapping"
+    };
+  }
+  // マッピング削除
+  rpc Delete(DeleteETCMeisaiMappingRequest) returns (Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/db/etc-meisai-mapping/{id}"
+    };
+  }
+  // マッピング一覧取得
+  rpc List(ListETCMeisaiMappingRequest) returns (ListETCMeisaiMappingResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/db/etc-meisai-mapping"
+    };
+  }
+  // ハッシュからDTakoRowIDを取得
+  rpc GetDTakoRowIDByHash(GetDTakoRowIDByHashRequest) returns (GetDTakoRowIDByHashResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/db/etc-meisai-mapping/by-hash/{etc_meisai_hash}"
+    };
+  }
+}
+
+// 経費精算データ
+message DTakoUriageKeihi {
+  string srch_id = 1;
+  string datetime = 2;  // RFC3339形式
+  int32 keihi_c = 3;
+  double price = 4;
+  optional double km = 5;
+  string dtako_row_id = 6;
+  string dtako_row_id_r = 7;
+  optional string start_srch_id = 8;
+  optional string start_srch_time = 9;
+  optional string start_srch_place = 10;
+  optional string start_srch_tokui = 11;
+  optional string end_srch_id = 12;
+  optional string end_srch_time = 13;
+  optional string end_srch_place = 14;
+  optional bool manual = 15;
+}
+
+// ETC明細データ
+message ETCMeisai {
+  int64 id = 1;
+  optional string date_fr = 2;
+  string date_to = 3;  // RFC3339形式推奨 (例: 2025-10-18T00:00:00Z)
+  string date_to_date = 4;  // YYYY-MM-DD形式 (例: 2025-10-18)
+  optional string ic_fr = 5;  // 入口IC不明の場合は省略可（実データの22.3%が空）
+  string ic_to = 6;  // 出口IC（必須）
+  optional int32 price_bf = 7;
+  optional int32 descount = 8;
+  int32 price = 9;
+  int32 shashu = 10;
+  optional int32 car_id_num = 11;
+  string etc_num = 12;
+  optional string detail = 13;
+  string hash = 14;
+}
+
+// フェリー運行データ
+message DTakoFerryRows {
+  int32 id = 1;
+  string unko_no = 2;  // 運行NO
+  string unko_date = 3;  // 運行日
+  string yomitori_date = 4;  // 読取日
+  int32 jigyosho_cd = 5;  // 事業所CD
+  string jigyosho_name = 6;  // 事業所名
+  int32 sharyo_cd = 7;  // 車輌CD
+  string sharyo_name = 8;  // 車輌名
+  int32 jomuin_cd1 = 9;  // 乗務員CD1
+  string jomuin_name1 = 10;  // 乗務員名１
+  int32 taisho_jomuin_kbn = 11;  // 対象乗務員区分
+  string kaishi_datetime = 12;  // 開始日時
+  string shuryo_datetime = 13;  // 終了日時
+  int32 ferry_company_cd = 14;  // フェリー会社CD
+  string ferry_company_name = 15;  // フェリー会社名
+  int32 noriba_cd = 16;  // 乗場CD
+  string noriba_name = 17;  // 乗場名
+  string bin = 18;  // 便
+  int32 oriba_cd = 19;  // 降場CD
+  string oriba_name = 20;  // 降場名
+  int32 seisan_kbn = 21;  // 精算区分
+  string seisan_kbn_name = 22;  // 精算区分名
+  int32 hyojun_ryokin = 23;  // 標準料金
+  int32 keiyaku_ryokin = 24;  // 契約料金
+  int32 koso_shashu_kbn = 25;  // 航送車種区分
+  string koso_shashu_kbn_name = 26;  // 航送車種区分名
+  int32 minashi_kyori = 27;  // 見なし距離
+  optional string ferry_srch = 28;  // ferry_srch
+}
+
+// リクエスト/レスポンスメッセージ
+
+// DTakoUriageKeihi用
+message CreateDTakoUriageKeihiRequest {
+  DTakoUriageKeihi dtako_uriage_keihi = 1;
+}
+
+message GetDTakoUriageKeihiRequest {
+  string srch_id = 1;
+  string datetime = 2;
+  int32 keihi_c = 3;
+}
+
+message UpdateDTakoUriageKeihiRequest {
+  DTakoUriageKeihi dtako_uriage_keihi = 1;
+}
+
+message DeleteDTakoUriageKeihiRequest {
+  string srch_id = 1;
+  string datetime = 2;
+  int32 keihi_c = 3;
+}
+
+message ListDTakoUriageKeihiRequest {
+  optional string dtako_row_id = 1;
+  optional string start_date = 2;
+  optional string end_date = 3;
+  int32 limit = 4;
+  int32 offset = 5;
+}
+
+message DTakoUriageKeihiResponse {
+  DTakoUriageKeihi dtako_uriage_keihi = 1;
+}
+
+message ListDTakoUriageKeihiResponse {
+  repeated DTakoUriageKeihi items = 1;
+  int32 total_count = 2;
+}
+
+// ETCMeisai用
+message CreateETCMeisaiRequest {
+  ETCMeisai etc_meisai = 1;
+}
+
+message GetETCMeisaiRequest {
+  int64 id = 1;
+}
+
+message UpdateETCMeisaiRequest {
+  ETCMeisai etc_meisai = 1;
+}
+
+message DeleteETCMeisaiRequest {
+  int64 id = 1;
+}
+
+message ListETCMeisaiRequest {
+  optional string hash = 1;
+  optional string start_date = 2;
+  optional string end_date = 3;
+  int32 limit = 4;
+  int32 offset = 5;
+}
+
+message ETCMeisaiResponse {
+  ETCMeisai etc_meisai = 1;
+}
+
+message ListETCMeisaiResponse {
+  repeated ETCMeisai items = 1;
+  int32 total_count = 2;
+}
+
+// DTakoFerryRows用
+message CreateDTakoFerryRowsRequest {
+  DTakoFerryRows dtako_ferry_rows = 1;
+}
+
+message GetDTakoFerryRowsRequest {
+  int32 id = 1;
+}
+
+message UpdateDTakoFerryRowsRequest {
+  DTakoFerryRows dtako_ferry_rows = 1;
+}
+
+message DeleteDTakoFerryRowsRequest {
+  int32 id = 1;
+}
+
+message ListDTakoFerryRowsRequest {
+  optional string unko_no = 1;
+  optional string start_date = 2;
+  optional string end_date = 3;
+  int32 limit = 4;
+  int32 offset = 5;
+}
+
+message DTakoFerryRowsResponse {
+  DTakoFerryRows dtako_ferry_rows = 1;
+}
+
+message ListDTakoFerryRowsResponse {
+  repeated DTakoFerryRows items = 1;
+  int32 total_count = 2;
+}
+
+// ETC明細マッピングデータ
+message ETCMeisaiMapping {
+  int64 id = 1;
+  string etc_meisai_hash = 2;
+  string dtako_row_id = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  string created_by = 6;
+  optional string notes = 7;
+}
+
+// ETCMeisaiMapping用リクエスト/レスポンス
+message CreateETCMeisaiMappingRequest {
+  ETCMeisaiMapping etc_meisai_mapping = 1;
+}
+
+message GetETCMeisaiMappingRequest {
+  int64 id = 1;
+}
+
+message UpdateETCMeisaiMappingRequest {
+  ETCMeisaiMapping etc_meisai_mapping = 1;
+}
+
+message DeleteETCMeisaiMappingRequest {
+  int64 id = 1;
+}
+
+message ListETCMeisaiMappingRequest {
+  optional string etc_meisai_hash = 1;
+  optional string dtako_row_id = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message ETCMeisaiMappingResponse {
+  ETCMeisaiMapping etc_meisai_mapping = 1;
+}
+
+message ListETCMeisaiMappingResponse {
+  repeated ETCMeisaiMapping items = 1;
+  int32 total_count = 2;
+}
+
+message GetDTakoRowIDByHashRequest {
+  string etc_meisai_hash = 1;
+}
+
+message GetDTakoRowIDByHashResponse {
+  repeated string dtako_row_ids = 1;
+}
+
+// 共通メッセージ
+message Empty {}

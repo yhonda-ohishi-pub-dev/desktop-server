@@ -54,6 +54,7 @@ func onReady(ctx context.Context, onExit func()) func() {
 		systray.AddSeparator()
 
 		mCheckUpdate := systray.AddMenuItem("Update Backend", "Check for new backend version")
+		mForceUpdate := systray.AddMenuItem("Force Update Backend", "Force download latest version (for testing)")
 		mUpdateFrontend := systray.AddMenuItem("Update Frontend", "Download latest frontend")
 		mUpdateScraper := systray.AddMenuItem("Update ETC Scraper", "Download latest etc_meisai_scraper")
 		systray.AddSeparator()
@@ -83,6 +84,8 @@ func onReady(ctx context.Context, onExit func()) func() {
 					openBrowser("http://localhost:8080")
 				case <-mCheckUpdate.ClickedCh:
 					go checkForUpdates()
+				case <-mForceUpdate.ClickedCh:
+					go forceUpdate()
 				case <-mUpdateFrontend.ClickedCh:
 					go updateFrontend()
 				case <-mUpdateScraper.ClickedCh:
@@ -148,6 +151,23 @@ func checkForUpdates() {
 
 	// New version available - download automatically
 	showNotification("Desktop Server", fmt.Sprintf("New version %s available! Downloading...", updateInfo.LatestVersion))
+	performUpdate(updateInfo.DownloadURL)
+}
+
+func forceUpdate() {
+	fmt.Println("Force updating to latest version...")
+
+	showNotification("Desktop Server", "Force downloading latest version...")
+
+	updateInfo, err := updater.CheckForUpdates()
+	if err != nil {
+		showNotification("Update Check Failed", fmt.Sprintf("Failed to check for updates: %v", err))
+		showMessage("Update Check Failed", fmt.Sprintf("Failed to check for updates: %v", err))
+		return
+	}
+
+	// Download regardless of version
+	showNotification("Desktop Server", fmt.Sprintf("Downloading version %s...", updateInfo.LatestVersion))
 	performUpdate(updateInfo.DownloadURL)
 }
 

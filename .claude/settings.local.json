@@ -4,7 +4,15 @@
       "Bash(go mod init desktop-server)",
       "Bash(go mod tidy)",
       "Bash(go build -o desktop-server.exe .)",
-      "Bash(./desktop-server.exe)"
+      "Bash(./desktop-server.exe)",
+      "Read(//c/go/etc_data_processor/src/cmd/server/**)",
+      "Read(//c/tmp/**)",
+      "Read(//c/Users/mtama/go/pkg/mod/github.com/yhonda-ohishi/db_service@v0.0.0-20251018144613-31c1a23634b8/src/config/**)",
+      "Read(//c/Users/mtama/go/pkg/mod/github.com/yhonda-ohishi/db_service@v0.0.0-20251018144613-31c1a23634b8/src/repository/**)",
+      "Read(//c/Users/mtama/go/pkg/mod/github.com/yhonda-ohishi/db_service@v0.0.0-20251018144613-31c1a23634b8/src/registry/**)",
+      "Read(//c/Users/mtama/go/pkg/mod/github.com/yhonda-ohishi/db_service@v0.0.0-20251018144613-31c1a23634b8/src/**)",
+      "Read(//c/Users/mtama/go/pkg/mod/github.com/yhonda-ohishi/db_service@v1.0.0/src/proto/**)",
+      "Read(//c/Users/mtama/go/pkg/mod/github.com/yhonda-ohishi/db_service@v1.0.0/src/registry/**)"
     ],
     "deny": [],
     "ask": []

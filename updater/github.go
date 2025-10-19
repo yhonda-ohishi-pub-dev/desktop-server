@@ -129,33 +129,51 @@ func DownloadUpdate(downloadURL string) (string, error) {
 }
 
 // ApplyUpdate replaces the current executable with the new one
-// Since the exe is running, we create a batch script to do the update after exit
+// Since the exe is running, we create a PowerShell script to do the update after exit
 func ApplyUpdate(newExePath string) error {
 	currentExe, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("failed to get current executable path: %w", err)
 	}
 
-	// Create a batch script to perform the update
-	batchScript := currentExe + "_update.bat"
+	// Create a PowerShell script to perform the update
+	psScript := currentExe + "_update.ps1"
 
-	// Batch script content:
+	// PowerShell script content:
 	// 1. Wait for current process to exit
 	// 2. Backup current exe
-	// 3. Copy new exe to current location
-	// 4. Start new exe (detached, no window)
-	// 5. Delete batch script
-	scriptContent := fmt.Sprintf(`@echo off
-timeout /t 2 /nobreak > nul
-if exist "%s.bak" del "%s.bak"
-move /Y "%s" "%s.bak"
-move /Y "%s" "%s"
-start "" /B "%s"
-timeout /t 1 /nobreak > nul
-del "%%~f0"
-`, currentExe, currentExe, currentExe, currentExe, newExePath, currentExe, currentExe)
+	// 3. Move new exe to current location
+	// 4. Start new exe (no window)
+	// 5. Delete script
+	scriptContent := fmt.Sprintf(`
+# Wait for process to exit
+Start-Sleep -Seconds 2
 
-	if err := os.WriteFile(batchScript, []byte(scriptContent), 0755); err != nil {
+# Backup old exe
+$oldExe = "%s"
+$backupExe = "%s.bak"
+$newExe = "%s"
+
+if (Test-Path $backupExe) {
+    Remove-Item $backupExe -Force
+}
+
+if (Test-Path $oldExe) {
+    Move-Item $oldExe $backupExe -Force
+}
+
+# Move new exe to location
+Move-Item $newExe $oldExe -Force
+
+# Start new exe (hidden window)
+Start-Process -FilePath $oldExe -WindowStyle Hidden
+
+# Wait a bit then delete this script
+Start-Sleep -Seconds 1
+Remove-Item $PSCommandPath -Force
+`, currentExe, currentExe, newExePath)
+
+	if err := os.WriteFile(psScript, []byte(scriptContent), 0755); err != nil {
 		return fmt.Errorf("failed to create update script: %w", err)
 	}
 
@@ -180,18 +198,18 @@ func copyFile(src, dst string) error {
 }
 
 // RestartApplication restarts the application after update
-// This executes the update batch script and exits the current process
+// This executes the update PowerShell script and exits the current process
 func RestartApplication() error {
 	executable, err := os.Executable()
 	if err != nil {
 		return err
 	}
 
-	// Execute the update batch script
-	batchScript := executable + "_update.bat"
+	// Execute the update PowerShell script
+	psScript := executable + "_update.ps1"
 
-	// Start the batch script in a detached process
-	cmd := exec.Command("cmd", "/C", batchScript)
+	// Start PowerShell script in hidden window
+	cmd := exec.Command("powershell", "-WindowStyle", "Hidden", "-ExecutionPolicy", "Bypass", "-File", psScript)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP | 0x08000000, // CREATE_NO_WINDOW
 	}

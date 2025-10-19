@@ -65,31 +65,30 @@ func (p *DownloadServiceProxy) DownloadSync(ctx context.Context, req *downloadpb
 
 	log.Printf("Download job started with ID: %s", jobResp.JobId)
 
-	// Poll for job completion
-	totalRecords, err := p.waitForJobCompletion(ctx, client, jobResp.JobId)
-	if err != nil {
-		return &downloadpb.DownloadResponse{
-			Success: false,
-			Error:   fmt.Sprintf("download job failed: %v", err),
-		}, nil
-	}
+	// Run download and CSV processing in background
+	go func() {
+		// Poll for job completion
+		totalRecords, err := p.waitForJobCompletion(context.Background(), client, jobResp.JobId)
+		if err != nil {
+			log.Printf("Download job failed: %v", err)
+			return
+		}
 
-	log.Printf("Download completed successfully, total records: %d", totalRecords)
+		log.Printf("Download completed successfully, total records: %d", totalRecords)
 
-	resp := &downloadpb.DownloadResponse{
-		Success:     true,
-		RecordCount: totalRecords,
-	}
+		// If mode is "db", process CSV and save to database
+		if req.Mode == "db" {
+			log.Printf("Processing downloaded CSV files and saving to database...")
+			saved, errors := p.processDownloadedCSVFiles(req.Accounts)
+			log.Printf("Database save completed: %d saved, %d errors", saved, errors)
+		}
+	}()
 
-	// If mode is "db", process CSV and save to database
-	if req.Mode == "db" {
-		log.Printf("Processing downloaded CSV files and saving to database")
-		saved, errors := p.processDownloadedCSVFiles(req.Accounts)
-		log.Printf("Database save completed: %d saved, %d errors", saved, errors)
-		resp.RecordCount = int32(saved)
-	}
-
-	return resp, nil
+	// Return immediately with job ID
+	return &downloadpb.DownloadResponse{
+		Success: true,
+		// Job will continue in background
+	}, nil
 }
 
 func (p *DownloadServiceProxy) DownloadAsync(ctx context.Context, req *downloadpb.DownloadRequest) (*downloadpb.DownloadJobResponse, error) {

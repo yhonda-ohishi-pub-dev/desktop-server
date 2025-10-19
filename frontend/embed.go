@@ -1,17 +1,28 @@
 package frontend
 
 import (
-	"embed"
+	"fmt"
 	"io/fs"
+	"os"
+	"path/filepath"
 )
 
-// Embed the frontend dist files into the binary
-// Use all:dist to include hidden files and handle empty directories
-//
-//go:embed all:dist
-var distFS embed.FS
-
-// GetDistFS returns the embedded filesystem containing the frontend files
+// GetDistFS returns the filesystem containing the frontend files
+// This now loads from the runtime dist directory instead of embedded files
 func GetDistFS() (fs.FS, error) {
-	return fs.Sub(distFS, "dist")
+	// Get executable directory
+	exePath, err := os.Executable()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get executable path: %w", err)
+	}
+
+	// Build path to frontend/dist relative to executable
+	distPath := filepath.Join(filepath.Dir(exePath), FrontendDistDir)
+
+	// Check if dist directory exists
+	if _, err := os.Stat(distPath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("frontend dist directory not found at %s", distPath)
+	}
+
+	return os.DirFS(distPath), nil
 }
