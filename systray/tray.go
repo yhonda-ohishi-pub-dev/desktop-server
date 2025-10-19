@@ -95,10 +95,14 @@ func onReady(ctx context.Context, onExit func()) func() {
 				case <-mAbout.ClickedCh:
 					showAbout()
 				case <-mQuit.ClickedCh:
+					log.Println("Quit requested from systray")
 					systray.Quit()
 					if onExit != nil {
 						onExit()
 					}
+					// Force exit after cleanup
+					time.Sleep(500 * time.Millisecond)
+					os.Exit(0)
 					return
 				}
 			}
