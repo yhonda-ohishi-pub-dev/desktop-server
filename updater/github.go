@@ -143,10 +143,24 @@ func ApplyUpdate(newExePath string) error {
 	// 1. Wait for current process to exit
 	// 2. Backup current exe
 	// 3. Move new exe to current location
-	// 4. Start new exe (no window)
+	// 4. Start new exe
 	// 5. Delete script
+
+	// Create log file path
+	logPath := filepath.Join(filepath.Dir(currentExe), "logs", "update-script.log")
+
 	scriptContent := fmt.Sprintf(`
+# Log function
+function Write-Log {
+    param($Message)
+    $timestamp = Get-Date -Format "yyyy/MM/dd HH:mm:ss"
+    Add-Content -Path "%s" -Value "$timestamp $Message"
+}
+
+Write-Log "UPDATE SCRIPT: Starting..."
+
 # Wait for process to exit
+Write-Log "UPDATE SCRIPT: Waiting 2 seconds for process to exit..."
 Start-Sleep -Seconds 2
 
 # Backup old exe
@@ -154,24 +168,36 @@ $oldExe = "%s"
 $backupExe = "%s.bak"
 $newExe = "%s"
 
-if (Test-Path $backupExe) {
-    Remove-Item $backupExe -Force
+Write-Log "UPDATE SCRIPT: Old exe: $oldExe"
+Write-Log "UPDATE SCRIPT: New exe: $newExe"
+
+try {
+    if (Test-Path $backupExe) {
+        Write-Log "UPDATE SCRIPT: Removing old backup..."
+        Remove-Item $backupExe -Force
+    }
+
+    if (Test-Path $oldExe) {
+        Write-Log "UPDATE SCRIPT: Moving old exe to backup..."
+        Move-Item $oldExe $backupExe -Force
+    }
+
+    Write-Log "UPDATE SCRIPT: Moving new exe to location..."
+    Move-Item $newExe $oldExe -Force
+
+    Write-Log "UPDATE SCRIPT: Starting new exe..."
+    Start-Process -FilePath $oldExe
+
+    Write-Log "UPDATE SCRIPT: New exe started successfully"
+} catch {
+    Write-Log "UPDATE SCRIPT ERROR: $_"
 }
-
-if (Test-Path $oldExe) {
-    Move-Item $oldExe $backupExe -Force
-}
-
-# Move new exe to location
-Move-Item $newExe $oldExe -Force
-
-# Start new exe (hidden window)
-Start-Process -FilePath $oldExe -WindowStyle Hidden
 
 # Wait a bit then delete this script
 Start-Sleep -Seconds 1
+Write-Log "UPDATE SCRIPT: Deleting script..."
 Remove-Item $PSCommandPath -Force
-`, currentExe, currentExe, newExePath)
+`, logPath, currentExe, currentExe, newExePath)
 
 	if err := os.WriteFile(psScript, []byte(scriptContent), 0755); err != nil {
 		return fmt.Errorf("failed to create update script: %w", err)
