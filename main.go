@@ -76,6 +76,12 @@ func main() {
 	defer scraperManager.Stop()
 	systray.SetScraperManager(scraperManager)
 
+	// Start etc_meisai_scraper immediately on startup
+	if err := scraperManager.Start(); err != nil {
+		log.Printf("Warning: Failed to start etc_meisai_scraper: %v", err)
+		log.Println("ETC download functionality will not be available until etc_meisai_scraper.exe is available")
+	}
+
 	// Start gRPC server with DownloadService proxy
 	grpcServer := server.NewGRPCServer(db, scraperManager)
 	go func() {
