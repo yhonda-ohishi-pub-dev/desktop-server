@@ -65,13 +65,19 @@ jobs:
           git clone https://github.com/yhonda-ohishi/etc_meisai_scraper.git temp_etc_scraper
           cd temp_etc_scraper
 
+          # Fetch all tags and checkout the latest release
+          git fetch --tags
+          $latestTag = git describe --tags --abbrev=0
+          Write-Host "Checking out latest tag: $latestTag"
+          git checkout $latestTag
+
           # Build the binary (without -H windowsgui to show browser window)
           go mod tidy
           go build -o ../etc_meisai_scraper.exe .
 
           cd ..
           Remove-Item -Recurse -Force temp_etc_scraper
-          Write-Host "Built etc_meisai_scraper.exe (browser visible mode)"
+          Write-Host "Built etc_meisai_scraper.exe $latestTag (browser visible mode)"
 
       - name: Create frontend dist directory
         run: |
