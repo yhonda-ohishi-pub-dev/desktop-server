@@ -79,18 +79,18 @@ func CheckForUpdates() (*UpdateInfo, error) {
 		ReleaseNotes:   release.Body,
 	}
 
+	// Find the appropriate asset for current OS (always set URL)
+	for _, asset := range release.Assets {
+		// Specifically look for desktop-server.exe
+		if asset.Name == "desktop-server.exe" {
+			info.DownloadURL = asset.BrowserDownloadURL
+			break
+		}
+	}
+
 	// Check if update is available
 	if release.TagName != CurrentVersion && release.TagName != "" {
 		info.Available = true
-
-		// Find the appropriate asset for current OS
-		for _, asset := range release.Assets {
-			// Specifically look for desktop-server.exe
-			if asset.Name == "desktop-server.exe" {
-				info.DownloadURL = asset.BrowserDownloadURL
-				break
-			}
-		}
 	}
 
 	return info, nil
