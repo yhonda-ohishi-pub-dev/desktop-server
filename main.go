@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/signal"
@@ -44,9 +43,8 @@ func setupLogging() (*os.File, error) {
 		return nil, fmt.Errorf("failed to open log file: %w", err)
 	}
 
-	// Set log output to both file and stdout
-	multiWriter := io.MultiWriter(os.Stdout, logFile)
-	log.SetOutput(multiWriter)
+	// Set log output to file only (os.Stdout doesn't work with -H windowsgui)
+	log.SetOutput(logFile)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	return logFile, nil
