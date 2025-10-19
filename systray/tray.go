@@ -187,13 +187,35 @@ func updateFrontend() {
 func updateETCScraper() {
 	fmt.Println("Updating ETC scraper...")
 
+	// Stop etc_meisai_scraper before updating
+	if scraperManager != nil {
+		log.Println("Stopping etc_meisai_scraper for update...")
+		if err := scraperManager.Stop(); err != nil {
+			log.Printf("Warning: Failed to stop etc_meisai_scraper: %v", err)
+		}
+	}
+
+	// Perform update
 	err := updater.UpdateETCScraper()
 	if err != nil {
 		showMessage("ETC Scraper Update Failed", fmt.Sprintf("Failed to update ETC scraper: %v", err))
+		// Restart scraper even if update failed
+		if scraperManager != nil {
+			scraperManager.Start()
+		}
 		return
 	}
 
-	showMessage("ETC Scraper Updated", "ETC scraper updated successfully!")
+	// Restart etc_meisai_scraper
+	if scraperManager != nil {
+		log.Println("Restarting etc_meisai_scraper with new version...")
+		if err := scraperManager.Start(); err != nil {
+			showMessage("ETC Scraper Update Warning", fmt.Sprintf("Update succeeded but restart failed: %v\n\nPlease restart desktop-server manually.", err))
+			return
+		}
+	}
+
+	showMessage("ETC Scraper Updated", "ETC scraper updated successfully and restarted!")
 }
 
 func downloadETCData() {
