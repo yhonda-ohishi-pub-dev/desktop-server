@@ -1,4 +1,4 @@
-module desktop-server
+module github.com/yhonda-ohishi-pub-dev/desktop-server
 
 go 1.25.1
 
