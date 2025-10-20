@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"desktop-server/frontend"
-	"desktop-server/internal/etcdb"
-	"desktop-server/internal/etcscraper"
-	"desktop-server/updater"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/frontend"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcdb"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/updater"
 
 	"github.com/getlantern/systray"
 	"github.com/yhonda-ohishi/etc_data_processor/src/pkg/parser"

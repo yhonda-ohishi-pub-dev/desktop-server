@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net"
 
-	pb "desktop-server/proto"
-	"desktop-server/internal/etcscraper"
+	pb "github.com/yhonda-ohishi-pub-dev/desktop-server/proto"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
 
 	"github.com/yhonda-ohishi/db_service/src/registry"
 	downloadpb "github.com/yhonda-ohishi/etc_meisai_scraper/src/pb"

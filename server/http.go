@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"desktop-server/frontend"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/frontend"
 
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
 )

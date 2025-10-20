@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"desktop-server/internal/etcdb"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcdb"
 
 	"github.com/joho/godotenv"
 	"github.com/yhonda-ohishi/etc_data_processor/src/pkg/parser"

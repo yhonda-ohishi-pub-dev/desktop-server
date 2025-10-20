@@ -11,11 +11,11 @@ import (
 	"syscall"
 	"time"
 
-	"desktop-server/frontend"
-	"desktop-server/internal/etcscraper"
-	"desktop-server/internal/process"
-	"desktop-server/server"
-	"desktop-server/systray"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/frontend"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/process"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/server"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/systray"
 
 	"github.com/joho/godotenv"
 )

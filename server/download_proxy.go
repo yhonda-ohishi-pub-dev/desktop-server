@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"desktop-server/internal/etcscraper"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
 
 	downloadpb "github.com/yhonda-ohishi/etc_meisai_scraper/src/pb"
 )

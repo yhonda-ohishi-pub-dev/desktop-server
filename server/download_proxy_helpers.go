@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"desktop-server/internal/etcscraper"
-	"desktop-server/systray"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/systray"
 
 	downloadpb "github.com/yhonda-ohishi/etc_meisai_scraper/src/pb"
 )
