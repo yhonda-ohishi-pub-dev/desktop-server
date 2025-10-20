@@ -42,10 +42,10 @@ func NewGRPCServer(db *DatabaseConnection, scraperManager *etcscraper.Manager) *
 
 	// Register DtakoRowService (dtako_events integration)
 	if db != nil && db.DB != nil {
-		// Create DtakoRowService implementation
+		// Create DtakoRowService implementation (uses db_service internally)
 		dtakoRowService := NewDtakoRowService(db)
 		dtakopb.RegisterDtakoRowServiceServer(grpcSrv, dtakoRowService)
-		log.Println("DtakoRowService registered successfully")
+		log.Println("DtakoRowService registered successfully (using db_service)")
 	} else {
 		log.Println("Warning: Database not available, DtakoRowService not registered")
 	}
