@@ -98,6 +98,10 @@ func (dc *DatabaseConnection) Query(query string, args ...interface{}) (*sql.Row
 	return dc.DB.Query(query, args...)
 }
 
+func (dc *DatabaseConnection) QueryRow(query string, args ...interface{}) *sql.Row {
+	return dc.DB.QueryRow(query, args...)
+}
+
 func (dc *DatabaseConnection) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return dc.DB.Exec(query, args...)
 }

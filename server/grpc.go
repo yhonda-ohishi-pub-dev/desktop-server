@@ -3,12 +3,14 @@ package server
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
 
 	pb "github.com/yhonda-ohishi-pub-dev/desktop-server/proto"
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
 
 	"github.com/yhonda-ohishi/db_service/src/registry"
+	dtakorowsregistry "github.com/yhonda-ohishi/dtako_rows/v2/pkg/registry"
 	downloadpb "github.com/yhonda-ohishi/etc_meisai_scraper/src/pb"
 	"google.golang.org/grpc"
 )
@@ -33,6 +35,11 @@ func NewGRPCServer(db *DatabaseConnection, scraperManager *etcscraper.Manager) *
 
 	// Register all db_service services automatically
 	registry.Register(grpcSrv)
+
+	// Register dtako_rows services automatically
+	if err := dtakorowsregistry.Register(grpcSrv); err != nil {
+		log.Printf("Warning: Failed to register dtako_rows services: %v", err)
+	}
 
 	// Register DownloadService proxy
 	downloadProxy := NewDownloadServiceProxy(scraperManager)

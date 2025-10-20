@@ -17,7 +17,8 @@
       "Bash(tasklist)",
       "Read(//c/Users/mtama/OneDrive/デスクトップ/test/**)",
       "Bash(cat \"C:/Users/mtama/OneDrive/デスクトップ/test/logs/update-script.log\")",
-      "Bash(cat \"C:/Users/mtama/OneDrive/デスクトップ/test/desktop-server.exe_update_wrapper.ps1\")"
+      "Bash(cat \"C:/Users/mtama/OneDrive/デスクトップ/test/desktop-server.exe_update_wrapper.ps1\")",
+      "Bash(go list -m github.com/yhonda-ohishi/dtako_rows)"
     ],
     "deny": [],
     "ask": []
