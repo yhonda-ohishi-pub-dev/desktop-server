@@ -8,6 +8,7 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/yhonda-ohishi/db_service v1.3.0
+	github.com/yhonda-ohishi/dtako_events v0.2.1
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 )
