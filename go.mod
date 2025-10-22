@@ -17,6 +17,7 @@ require github.com/yhonda-ohishi/etc_data_processor v1.0.0
 
 require (
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/yhonda-ohishi/dtako_events v1.1.0 // indirect
 	gorm.io/driver/sqlserver v1.6.1 // indirect
 )
 
