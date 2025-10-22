@@ -7,7 +7,7 @@ require (
 	github.com/getlantern/systray v1.2.2
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/improbable-eng/grpc-web v0.15.0
-	github.com/yhonda-ohishi/db_service v1.3.0
+	github.com/yhonda-ohishi/db_service v1.4.0
 	github.com/yhonda-ohishi/dtako_events v0.2.1
 	github.com/yhonda-ohishi/dtako_rows/v2 v2.0.0
 	google.golang.org/grpc v1.76.0
@@ -15,6 +15,12 @@ require (
 )
 
 require github.com/yhonda-ohishi/etc_data_processor v1.0.0
+
+require (
+	github.com/google/uuid v1.6.0 // indirect
+	github.com/microsoft/go-mssqldb v1.8.2 // indirect
+	gorm.io/driver/sqlserver v1.6.1 // indirect
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -27,7 +33,7 @@ require (
 	github.com/getlantern/hidden v0.0.0-20190325191715-f02dbb02be55 // indirect
 	github.com/getlantern/ops v0.0.0-20190325191751-d70cb0d6f85f // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
-	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
+	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -44,7 +50,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20251014184007-4626949a642f // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251014184007-4626949a642f // indirect
 	gorm.io/driver/mysql v1.5.2 // indirect
-	gorm.io/gorm v1.25.5 // indirect
+	gorm.io/gorm v1.30.0 // indirect
 	nhooyr.io/websocket v1.8.6 // indirect
 )
 
