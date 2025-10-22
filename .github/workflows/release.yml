@@ -20,7 +20,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.25.1'
 
       - name: Install Protocol Buffers
         run: |
@@ -88,14 +88,14 @@ jobs:
         shell: powershell
         run: |
           $version = "${{ github.ref }}".Replace("refs/tags/", "")
-          go run -ldflags="-X desktop-server/updater.Version=$version" . -update
+          go run -ldflags="-X github.com/yhonda-ohishi-pub-dev/desktop-server/updater.Version=$version" . -update
 
       - name: Build for Windows (GUI mode)
         shell: powershell
         run: |
           go mod tidy
           $version = "${{ github.ref }}".Replace("refs/tags/", "")
-          go build -ldflags="-H windowsgui -X desktop-server/updater.Version=$version" -o desktop-server.exe .
+          go build -ldflags="-H windowsgui -X github.com/yhonda-ohishi-pub-dev/desktop-server/updater.Version=$version" -o desktop-server.exe .
 
       - name: Get version from tag
         id: get_version
