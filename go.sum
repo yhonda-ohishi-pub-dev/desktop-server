@@ -872,8 +872,8 @@ github.com/ugorji/go/codec v1.1.7/go.mod h1:Ax+UKWsSmolVDwsd+7N3ZtXu+yMGCf907BLY
 github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
-github.com/yhonda-ohishi/db_service v1.5.0 h1:rr+sJlPtPI8M2oIiE5/zC35PuXgci6WRvBjotBEswM4=
-github.com/yhonda-ohishi/db_service v1.5.0/go.mod h1:CFI+05qMWM76WaNpUtzeak5HnvkcLfsEdkanlXVRZU8=
+github.com/yhonda-ohishi/db_service v1.6.0 h1:4TZk1yP8gmZAgVSLcDNF/2epaKY/qDkJ7k1LIxchqm4=
+github.com/yhonda-ohishi/db_service v1.6.0/go.mod h1:CFI+05qMWM76WaNpUtzeak5HnvkcLfsEdkanlXVRZU8=
 github.com/yhonda-ohishi/dtako_events v1.1.0 h1:dI3pWREwRvB6Zi1tHgCCxxADzSKFlv8S2api1V/K2o0=
 github.com/yhonda-ohishi/dtako_events v1.1.0/go.mod h1:tzElqqLev49oOEWFa6cdhW7yXKugJ0epbZ9Mu9JxBfQ=
 github.com/yhonda-ohishi/dtako_rows/v3 v3.0.0 h1:G0ObyPC8fu9S8hGE0RabQbiu4UtL0dM9VBBZXsH1+ok=
