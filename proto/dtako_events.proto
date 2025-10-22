@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package dtako;
+
+option go_package = "github.com/yhonda-ohishi/dtako_events/proto;dtako";
+
+import "google/protobuf/timestamp.proto";
+
+// DtakoEventサービス - イベントデータの管理
+service DtakoEventService {
+  // イベント参照
+  rpc GetEvent(GetEventRequest) returns (Event);
+  rpc GetByUnkoNo(GetByUnkoNoRequest) returns (GetByUnkoNoResponse);
+
+  // 集計
+  rpc AggregateByEventType(AggregateByEventTypeRequest) returns (AggregateByEventTypeResponse);
+
+  // 位置情報処理（TODO: 実装予定）
+  // rpc FindEmptyLocation(FindEmptyLocationRequest) returns (GetByUnkoNoResponse);
+  // rpc SetLocationByGeo(SetLocationRequest) returns (SetLocationResponse);
+  // rpc SetGeoCode(SetGeoCodeRequest) returns (SetGeoCodeResponse);
+}
+
+// イベント（dtako_rows.protoのEventと同じ定義を参照）
+message Event {
+  string srch_id = 1;
+  string event_type = 2;
+  string unko_no = 3;
+  string driver_id = 4;
+  google.protobuf.Timestamp start_datetime = 5;
+  google.protobuf.Timestamp end_datetime = 6;
+  double start_latitude = 7;
+  double start_longitude = 8;
+  string start_city_name = 9;
+  double end_latitude = 10;
+  double end_longitude = 11;
+  string end_city_name = 12;
+  string tokuisaki = 13;
+  string biko = 14;
+  google.protobuf.Timestamp created_at = 20;
+  google.protobuf.Timestamp updated_at = 21;
+}
+
+message GetEventRequest {
+  string srch_id = 1;
+}
+
+// 運行NO指定でイベント一覧取得
+message GetByUnkoNoRequest {
+  string unko_no = 1;
+  repeated string event_types = 2;  // イベント種別フィルタ（空の場合は全て）
+  google.protobuf.Timestamp start_time = 3;  // 開始時刻フィルタ（オプション）
+  google.protobuf.Timestamp end_time = 4;    // 終了時刻フィルタ（オプション）
+}
+
+message GetByUnkoNoResponse {
+  repeated Event events = 1;
+}
+
+// イベント種別ごとの集計
+message AggregateByEventTypeRequest {
+  string unko_no = 1;  // 運行NO（オプション、指定なしで全体集計）
+  google.protobuf.Timestamp start_time = 2;  // 開始時刻フィルタ（オプション）
+  google.protobuf.Timestamp end_time = 3;    // 終了時刻フィルタ（オプション）
+}
+
+message AggregateByEventTypeResponse {
+  repeated EventTypeAggregate aggregates = 1;
+  EventTypeAggregate total = 2;  // 全イベント種別の合計
+}
+
+message EventTypeAggregate {
+  string event_type = 1;              // イベント種別
+  int32 count = 2;                    // イベント数
+
+  // 時間集計
+  double total_duration_minutes = 3;   // 合計時間（分）
+  double avg_duration_minutes = 4;     // 平均時間（分）
+
+  // 距離集計（section_distance from db_service）
+  double total_section_distance = 5;   // 合計区間距離
+  double avg_section_distance = 6;     // 平均区間距離
+
+  // 走行距離集計（mileage差分 from db_service）
+  double total_mileage_diff = 7;       // 合計走行距離（終了メーター - 開始メーター）
+  double avg_mileage_diff = 8;         // 平均走行距離
+}

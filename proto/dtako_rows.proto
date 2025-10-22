@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package dtako_rows;
+
+option go_package = "github.com/yhonda-ohishi/dtako_rows/v3/proto;dtako_rows";
+
+import "google/protobuf/timestamp.proto";
+
+// DtakoRowsサービス - 運行データの管理（読み取り専用）
+service DtakoRowsService {
+  // 運行データ取得
+  rpc GetRow(GetRowRequest) returns (GetRowResponse);
+
+  // 運行データ一覧取得
+  rpc ListRows(ListRowsRequest) returns (ListRowsResponse);
+
+  // 検索
+  rpc SearchRows(SearchRowsRequest) returns (ListRowsResponse);
+}
+
+// 運行データ
+message DtakoRow {
+  string id = 1;                                    // 主キー
+  string unko_no = 2;                               // 運行NO
+  string sharyou_cc = 3;                            // 車輌CC
+  string jomuin_cd1 = 4;                            // 乗務員CD1
+  google.protobuf.Timestamp shukko_datetime = 5;   // 出庫日時
+  google.protobuf.Timestamp kiko_datetime = 6;     // 帰庫日時
+  google.protobuf.Timestamp unko_date = 7;         // 運行日
+  int32 taishou_jomuin_kubun = 8;                  // 対象乗務員区分
+  double soukou_kyori = 9;                         // 走行距離
+  double nenryou_shiyou = 10;                      // 燃料使用量
+  google.protobuf.Timestamp created_at = 11;       // 作成日時
+  google.protobuf.Timestamp updated_at = 12;       // 更新日時
+}
+
+// GetRow
+message GetRowRequest {
+  string id = 1;
+}
+
+message GetRowResponse {
+  DtakoRow row = 1;
+}
+
+// ListRows
+message ListRowsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string order_by = 3;
+}
+
+message ListRowsResponse {
+  repeated DtakoRow rows = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// SearchRows
+message SearchRowsRequest {
+  google.protobuf.Timestamp date_from = 1;
+  google.protobuf.Timestamp date_to = 2;
+  string sharyou_cc = 3;
+  string jomuin_cd1 = 4;
+}
