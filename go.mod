@@ -8,16 +8,18 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/microsoft/go-mssqldb v1.8.2
 	github.com/yhonda-ohishi/db_service v1.4.0
-	github.com/yhonda-ohishi/dtako_rows/v2 v2.0.0
+	github.com/yhonda-ohishi/dtako_rows/v3 v3.0.0
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 )
 
-require github.com/yhonda-ohishi/etc_data_processor v1.0.0
+require (
+	github.com/yhonda-ohishi/dtako_events v1.1.0
+	github.com/yhonda-ohishi/etc_data_processor v1.0.0
+)
 
 require (
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/yhonda-ohishi/dtako_events v1.1.0 // indirect
 	gorm.io/driver/sqlserver v1.6.1 // indirect
 )
 

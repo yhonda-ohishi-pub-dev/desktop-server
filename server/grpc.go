@@ -11,7 +11,7 @@ import (
 
 	"github.com/yhonda-ohishi/db_service/src/registry"
 	dtakoeventsregistry "github.com/yhonda-ohishi/dtako_events/pkg/registry"
-	dtakorowsregistry "github.com/yhonda-ohishi/dtako_rows/v2/pkg/registry"
+	dtakorowsregistry "github.com/yhonda-ohishi/dtako_rows/v3/pkg/registry"
 	downloadpb "github.com/yhonda-ohishi/etc_meisai_scraper/src/pb"
 	"google.golang.org/grpc"
 )

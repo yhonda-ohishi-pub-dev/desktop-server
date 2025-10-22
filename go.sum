@@ -874,12 +874,10 @@ github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtX
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/yhonda-ohishi/db_service v1.4.0 h1:CNJGM7PCZ+aX4njGPES4S78nEB9wgO3mJxCpqD82oqM=
 github.com/yhonda-ohishi/db_service v1.4.0/go.mod h1:CFI+05qMWM76WaNpUtzeak5HnvkcLfsEdkanlXVRZU8=
-github.com/yhonda-ohishi/dtako_events v1.0.0 h1:UX+3jtSr9QjlVkPMfuytih2X8PDXFltCa1yaTc/4a0Y=
-github.com/yhonda-ohishi/dtako_events v1.0.0/go.mod h1:yhdLZCXdd8yrzfrxz9ce9o3QW4QqQoCZ2K3T05QDmo0=
 github.com/yhonda-ohishi/dtako_events v1.1.0 h1:dI3pWREwRvB6Zi1tHgCCxxADzSKFlv8S2api1V/K2o0=
 github.com/yhonda-ohishi/dtako_events v1.1.0/go.mod h1:tzElqqLev49oOEWFa6cdhW7yXKugJ0epbZ9Mu9JxBfQ=
-github.com/yhonda-ohishi/dtako_rows/v2 v2.0.0 h1:zzQ14t3BYypsjravgkZcBSbF9N6sXuNfru1GRQ5dgwo=
-github.com/yhonda-ohishi/dtako_rows/v2 v2.0.0/go.mod h1:aKyrh03ZRjkghX21UcuyheWCFPhSE2h73OAIHynAdpE=
+github.com/yhonda-ohishi/dtako_rows/v3 v3.0.0 h1:G0ObyPC8fu9S8hGE0RabQbiu4UtL0dM9VBBZXsH1+ok=
+github.com/yhonda-ohishi/dtako_rows/v3 v3.0.0/go.mod h1:EfLx6EWzZ/viWy4ZXGRqIxdTmdfU7xrKb0uIzYcXWi0=
 github.com/yhonda-ohishi/etc_data_processor v1.0.0 h1:R2FVdOJCQYSfiCeOUK0H90YeAVJUMmubbPLdjQdpKF0=
 github.com/yhonda-ohishi/etc_data_processor v1.0.0/go.mod h1:I7bMD+IO4/bxjiVv/uu64bxCt8UYlsUPnQQS/Fqk460=
 github.com/yhonda-ohishi/etc_meisai_scraper v0.0.22 h1:3O9FxleKnqZGmQvz6oG/CiDNf305+JAc0H3VTZnlrCo=
