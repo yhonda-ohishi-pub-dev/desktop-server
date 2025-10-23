@@ -4,6 +4,7 @@ modules:
     name: buf.build/yhonda-ohishi/desktop-server
 deps:
   - buf.build/googleapis/googleapis
+  - buf.build/yhonda-ohishi/db-service
 lint:
   use:
     - STANDARD

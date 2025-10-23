@@ -14,7 +14,7 @@ import (
 // ETCDBClient wraps db_service ETCMeisai operations
 type ETCDBClient struct {
 	conn    *grpc.ClientConn
-	client  pb.ETCMeisaiServiceClient
+	client  pb.Db_ETCMeisaiServiceClient
 }
 
 // NewETCDBClient creates a new ETC database client
@@ -26,7 +26,7 @@ func NewETCDBClient(address string) (*ETCDBClient, error) {
 
 	return &ETCDBClient{
 		conn:   conn,
-		client: pb.NewETCMeisaiServiceClient(conn),
+		client: pb.NewDb_ETCMeisaiServiceClient(conn),
 	}, nil
 }
 
@@ -61,8 +61,8 @@ func (c *ETCDBClient) SaveETCRecord(ctx context.Context, record parser.ActualETC
 		icFr = &record.EntryIC
 	}
 
-	req := &pb.CreateETCMeisaiRequest{
-		EtcMeisai: &pb.ETCMeisai{
+	req := &pb.Db_CreateETCMeisaiRequest{
+		EtcMeisai: &pb.Db_ETCMeisai{
 			DateFr:     dateFr,         // optional: 入口日時 (*string型)
 			DateTo:     exitDateTime,   // 必須: 出口日時
 			DateToDate: exitDateOnly,   // 必須: 出口日付のみ
