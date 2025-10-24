@@ -100,19 +100,6 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
-	// Initialize database connection (optional)
-	db, err := server.NewDatabaseConnection()
-	if err != nil {
-		log.Printf("Warning: Database connection failed: %v", err)
-		log.Println("Starting without database connection. Configure DB settings to use database features.")
-		db = nil
-	} else {
-		log.Println("Database connected successfully")
-	}
-	if db != nil {
-		defer db.Close()
-	}
-
 	// Initialize etc_meisai_scraper manager (auto-start enabled)
 	scraperManager := etcscraper.NewManager("localhost:50052", "", true)
 	defer scraperManager.Stop()
@@ -125,7 +112,7 @@ func main() {
 	}
 
 	// Start gRPC server with DownloadService proxy
-	grpcServer := server.NewGRPCServer(db, scraperManager)
+	grpcServer := server.NewGRPCServer(scraperManager)
 	go func() {
 		if err := grpcServer.Start(":50051"); err != nil {
 			log.Fatalf("Failed to start gRPC server: %v", err)

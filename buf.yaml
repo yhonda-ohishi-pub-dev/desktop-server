@@ -5,6 +5,8 @@ modules:
 deps:
   - buf.build/googleapis/googleapis
   - buf.build/yhonda-ohishi/db-service
+  - buf.build/yhonda-ohishi/dtako-events
+  - buf.build/yhonda-ohishi/dtako-rows
 lint:
   use:
     - STANDARD
