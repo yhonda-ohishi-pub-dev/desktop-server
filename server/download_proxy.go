@@ -95,23 +95,28 @@ func (p *DownloadServiceProxy) DownloadSync(ctx context.Context, req *downloadpb
 		log.Printf("Download completed successfully, total records: %d", totalRecords)
 		p.progressService.BroadcastProgress(&pb.ProgressUpdate{
 			Type:        pb.ProgressType_PROGRESS_TYPE_PROGRESS,
-			Message:     fmt.Sprintf("ダウンロード完了 (%d件)", totalRecords),
+			Message:     "ダウンロード完了、データベースに保存中...",
 			CurrentStep: int32(len(req.Accounts)),
-			TotalSteps:  int32(len(req.Accounts)),
-			Percentage:  100,
+			TotalSteps:  int32(len(req.Accounts) * 2),
+			Percentage:  50,
 			JobId:       jobResp.JobId,
 		})
 
 		// If mode is "db", process CSV and save to database
 		if req.Mode == "db" {
-			p.progressService.BroadcastProgress(&pb.ProgressUpdate{
-				Type:    pb.ProgressType_PROGRESS_TYPE_PROGRESS,
-				Message: "データベースに保存中...",
-				JobId:   jobResp.JobId,
-			})
 			log.Printf("Processing downloaded CSV files and saving to database...")
 			saved, errors := p.processDownloadedCSVFiles(req.Accounts)
 			log.Printf("Database save completed: %d saved, %d errors", saved, errors)
+
+			// 保存完了の進捗を送信
+			p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+				Type:        pb.ProgressType_PROGRESS_TYPE_PROGRESS,
+				Message:     fmt.Sprintf("保存完了: %d件", saved),
+				CurrentStep: int32(len(req.Accounts) * 2),
+				TotalSteps:  int32(len(req.Accounts) * 2),
+				Percentage:  100,
+				JobId:       jobResp.JobId,
+			})
 
 			if errors > 0 {
 				p.progressService.BroadcastProgress(&pb.ProgressUpdate{
@@ -199,15 +204,25 @@ func (p *DownloadServiceProxy) DownloadAsync(ctx context.Context, req *downloadp
 		log.Printf("Download completed successfully, total records: %d", totalRecords)
 		p.progressService.BroadcastProgress(&pb.ProgressUpdate{
 			Type:        pb.ProgressType_PROGRESS_TYPE_PROGRESS,
-			Message:     fmt.Sprintf("ダウンロード完了 (%d件)", totalRecords),
+			Message:     "ダウンロード完了、データベースに保存中...",
 			CurrentStep: int32(len(req.Accounts)),
-			TotalSteps:  int32(len(req.Accounts)),
-			Percentage:  100,
+			TotalSteps:  int32(len(req.Accounts) * 2), // ダウンロード + 保存
+			Percentage:  50, // ダウンロード完了 = 50%
 			JobId:       jobResp.JobId,
 		})
 
 		log.Println("Processing downloaded CSV files and saving to database...")
 		saved, errors := p.processDownloadedCSVFiles(req.Accounts)
+
+		// 保存完了の進捗を送信
+		p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+			Type:        pb.ProgressType_PROGRESS_TYPE_PROGRESS,
+			Message:     fmt.Sprintf("保存完了: %d件", saved),
+			CurrentStep: int32(len(req.Accounts) * 2),
+			TotalSteps:  int32(len(req.Accounts) * 2),
+			Percentage:  100,
+			JobId:       jobResp.JobId,
+		})
 
 		if errors > 0 {
 			p.progressService.BroadcastProgress(&pb.ProgressUpdate{
