@@ -1,3 +1,7 @@
+buf.build/gen/go/yhonda-ohishi/db-service/grpc/go v1.5.1-20251023141239-9b0c2193725c.2 h1:j6wlV3kX6QxwXCVkvLYUBa59aCoUXRQ32FnnPszkQkw=
+buf.build/gen/go/yhonda-ohishi/db-service/grpc/go v1.5.1-20251023141239-9b0c2193725c.2/go.mod h1:o+FKJ9gG5UZqhkLus8CD+9zg4V+k+TAUz0JodNGOKTQ=
+buf.build/gen/go/yhonda-ohishi/db-service/protocolbuffers/go v1.36.10-20251023141239-9b0c2193725c.1 h1:8E+mTdb4wcYW3Xnex8ULG4QhUxJUye0wsPfxJjUvuoE=
+buf.build/gen/go/yhonda-ohishi/db-service/protocolbuffers/go v1.36.10-20251023141239-9b0c2193725c.1/go.mod h1:6MajWzPrrj7DI2KVHv/ZEFGY+Zgyb4+DsDqXmA2hgWA=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
@@ -877,8 +881,8 @@ github.com/yhonda-ohishi/db_service v1.8.0 h1:KhGQZmnph7Wp0FOEdNU9WKgk+sWE6YiGme
 github.com/yhonda-ohishi/db_service v1.8.0/go.mod h1:CFI+05qMWM76WaNpUtzeak5HnvkcLfsEdkanlXVRZU8=
 github.com/yhonda-ohishi/dtako_events v1.4.0 h1:JBrpgFjrjj3qLiV3aDzmUWGaiC2ABSHewbAO3puDRJM=
 github.com/yhonda-ohishi/dtako_events v1.4.0/go.mod h1:tzElqqLev49oOEWFa6cdhW7yXKugJ0epbZ9Mu9JxBfQ=
-github.com/yhonda-ohishi/dtako_rows/v3 v3.0.0 h1:G0ObyPC8fu9S8hGE0RabQbiu4UtL0dM9VBBZXsH1+ok=
-github.com/yhonda-ohishi/dtako_rows/v3 v3.0.0/go.mod h1:EfLx6EWzZ/viWy4ZXGRqIxdTmdfU7xrKb0uIzYcXWi0=
+github.com/yhonda-ohishi/dtako_rows/v3 v3.3.2 h1:jXT0tPDIpcEYMiAWdAD19ENjPs96akSyvg2QjDY8wys=
+github.com/yhonda-ohishi/dtako_rows/v3 v3.3.2/go.mod h1:WtC9b1TptoR1wPsfH18jw8q3bM9YAR+5Za1Ycm/mXyc=
 github.com/yhonda-ohishi/etc_data_processor v1.0.0 h1:R2FVdOJCQYSfiCeOUK0H90YeAVJUMmubbPLdjQdpKF0=
 github.com/yhonda-ohishi/etc_data_processor v1.0.0/go.mod h1:I7bMD+IO4/bxjiVv/uu64bxCt8UYlsUPnQQS/Fqk460=
 github.com/yhonda-ohishi/etc_meisai_scraper v0.0.22 h1:3O9FxleKnqZGmQvz6oG/CiDNf305+JAc0H3VTZnlrCo=
