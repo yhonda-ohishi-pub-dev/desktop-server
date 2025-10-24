@@ -1,6 +1,7 @@
 version: v2
 modules:
   - path: proto
+    name: buf.build/yhonda-ohishi/desktop-server
 deps:
   - buf.build/googleapis/googleapis
   - buf.build/yhonda-ohishi/db-service
