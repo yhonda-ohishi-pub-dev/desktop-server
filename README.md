@@ -63,9 +63,47 @@ make install-tools
 ## Download & Run
 
 1. Download `desktop-server.exe` from [GitHub Releases](https://github.com/yourusername/desktop-server/releases)
-2. Double-click to run
-3. The app will appear in your system tray
-4. Right-click the tray icon and select "Open App"
+2. **Windows セキュリティ警告が表示された場合:**
+   - 「詳細情報」をクリック
+   - 「実行」をクリック
+   - または、ファイルを右クリック → プロパティ → 「許可する」にチェック → OK
+3. Double-click to run
+4. The app will appear in your system tray
+5. Right-click the tray icon and select "Open App"
+
+### Windows Defender SmartScreen について
+
+初回実行時にWindows Defender SmartScreenの警告が表示されることがあります。これは署名されていない実行ファイルに対する標準的な保護機能です。
+
+**警告を回避する方法:**
+
+1. **ダウンロード後の対処:**
+   ```
+   ファイルを右クリック
+   → プロパティ
+   → 全般タブ
+   → セキュリティ: 「許可する」にチェック
+   → OK をクリック
+   ```
+
+2. **実行時の警告が表示された場合:**
+   ```
+   「詳細情報」をクリック
+   → 「実行」ボタンをクリック
+   ```
+
+3. **Windows Defenderの除外設定 (推奨):**
+   ```
+   Windowsセキュリティを開く
+   → ウイルスと脅威の防止
+   → 設定の管理
+   → 除外
+   → 除外の追加
+   → ファイル
+   → desktop-server.exe を選択
+   ```
+
+**注意:** このアプリケーションはオープンソースであり、ソースコードは[GitHub](https://github.com/yhonda-ohishi-pub-dev/desktop-server)で確認できます。
 
 ## Building from Source
 
