@@ -27,8 +27,8 @@ func NewGRPCServer(scraperManager *etcscraper.Manager, progressService *Progress
 		grpcServer: grpcSrv,
 	}
 
-	// Register all db_service services automatically
-	registry.Register(grpcSrv)
+	// Register all db_service services automatically (excluding DTakoRowsService and DTakoEventsService)
+	registry.Register(grpcSrv, registry.WithExcludeServices("DTakoRowsService", "DTakoEventsService"))
 
 	// Register dtako_rows services automatically
 	if err := dtakorowsregistry.Register(grpcSrv); err != nil {

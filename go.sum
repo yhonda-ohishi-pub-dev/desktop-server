@@ -1,7 +1,3 @@
-buf.build/gen/go/yhonda-ohishi/db-service/grpc/go v1.5.1-20251023141239-9b0c2193725c.2 h1:j6wlV3kX6QxwXCVkvLYUBa59aCoUXRQ32FnnPszkQkw=
-buf.build/gen/go/yhonda-ohishi/db-service/grpc/go v1.5.1-20251023141239-9b0c2193725c.2/go.mod h1:o+FKJ9gG5UZqhkLus8CD+9zg4V+k+TAUz0JodNGOKTQ=
-buf.build/gen/go/yhonda-ohishi/db-service/protocolbuffers/go v1.36.10-20251023141239-9b0c2193725c.1 h1:8E+mTdb4wcYW3Xnex8ULG4QhUxJUye0wsPfxJjUvuoE=
-buf.build/gen/go/yhonda-ohishi/db-service/protocolbuffers/go v1.36.10-20251023141239-9b0c2193725c.1/go.mod h1:6MajWzPrrj7DI2KVHv/ZEFGY+Zgyb4+DsDqXmA2hgWA=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
@@ -877,12 +873,12 @@ github.com/ugorji/go/codec v1.1.7/go.mod h1:Ax+UKWsSmolVDwsd+7N3ZtXu+yMGCf907BLY
 github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
-github.com/yhonda-ohishi/db_service v1.8.0 h1:KhGQZmnph7Wp0FOEdNU9WKgk+sWE6YiGmeN4IrH1Z0M=
-github.com/yhonda-ohishi/db_service v1.8.0/go.mod h1:CFI+05qMWM76WaNpUtzeak5HnvkcLfsEdkanlXVRZU8=
+github.com/yhonda-ohishi/db_service v1.9.0 h1:brGJe7qDK6/nmiunRcsSdcEvWh6iD8EcwrqA+4L9SMU=
+github.com/yhonda-ohishi/db_service v1.9.0/go.mod h1:CFI+05qMWM76WaNpUtzeak5HnvkcLfsEdkanlXVRZU8=
 github.com/yhonda-ohishi/dtako_events v1.4.0 h1:JBrpgFjrjj3qLiV3aDzmUWGaiC2ABSHewbAO3puDRJM=
 github.com/yhonda-ohishi/dtako_events v1.4.0/go.mod h1:tzElqqLev49oOEWFa6cdhW7yXKugJ0epbZ9Mu9JxBfQ=
-github.com/yhonda-ohishi/dtako_rows/v3 v3.3.2 h1:jXT0tPDIpcEYMiAWdAD19ENjPs96akSyvg2QjDY8wys=
-github.com/yhonda-ohishi/dtako_rows/v3 v3.3.2/go.mod h1:WtC9b1TptoR1wPsfH18jw8q3bM9YAR+5Za1Ycm/mXyc=
+github.com/yhonda-ohishi/dtako_rows/v3 v3.3.4 h1:HNb76/+q0X0+Rp7T3b49ai4juvkksYINTcgNQN2AgqQ=
+github.com/yhonda-ohishi/dtako_rows/v3 v3.3.4/go.mod h1:fgvBAoDGAqhfUVmnKq7tFIcLi8iYeFew2Tl0u/X/CJc=
 github.com/yhonda-ohishi/etc_data_processor v1.0.0 h1:R2FVdOJCQYSfiCeOUK0H90YeAVJUMmubbPLdjQdpKF0=
 github.com/yhonda-ohishi/etc_data_processor v1.0.0/go.mod h1:I7bMD+IO4/bxjiVv/uu64bxCt8UYlsUPnQQS/Fqk460=
 github.com/yhonda-ohishi/etc_meisai_scraper v0.0.22 h1:3O9FxleKnqZGmQvz6oG/CiDNf305+JAc0H3VTZnlrCo=

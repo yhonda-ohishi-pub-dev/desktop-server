@@ -7,8 +7,8 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/microsoft/go-mssqldb v1.8.2
-	github.com/yhonda-ohishi/db_service v1.8.0
-	github.com/yhonda-ohishi/dtako_rows/v3 v3.3.2
+	github.com/yhonda-ohishi/db_service v1.9.0
+	github.com/yhonda-ohishi/dtako_rows/v3 v3.3.4
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 )
@@ -19,8 +19,6 @@ require (
 )
 
 require (
-	buf.build/gen/go/yhonda-ohishi/db-service/grpc/go v1.5.1-20251023141239-9b0c2193725c.2 // indirect
-	buf.build/gen/go/yhonda-ohishi/db-service/protocolbuffers/go v1.36.10-20251023141239-9b0c2193725c.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	gorm.io/driver/sqlserver v1.6.1 // indirect
@@ -58,4 +56,7 @@ require (
 	nhooyr.io/websocket v1.8.6 // indirect
 )
 
-replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de
+replace (
+	github.com/yhonda-ohishi/db_service => github.com/yhonda-ohishi/db_service v1.9.0
+	google.golang.org/genproto => google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de
+)
