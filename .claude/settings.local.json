@@ -18,7 +18,11 @@
       "Read(//c/Users/mtama/OneDrive/デスクトップ/test/**)",
       "Bash(cat \"C:/Users/mtama/OneDrive/デスクトップ/test/logs/update-script.log\")",
       "Bash(cat \"C:/Users/mtama/OneDrive/デスクトップ/test/desktop-server.exe_update_wrapper.ps1\")",
-      "Bash(go list -m github.com/yhonda-ohishi/dtako_rows)"
+      "Bash(go list -m github.com/yhonda-ohishi/dtako_rows)",
+      "Read(//c/Users/mtama/go/pkg/mod/github.com/yhonda-ohishi/db_service@v1.7.0/src/proto/**)",
+      "Bash(go list:*)",
+      "Read(//c/Users/mtama/go/pkg/mod/github.com/**)",
+      "Bash(go get:*)"
     ],
     "deny": [],
     "ask": []

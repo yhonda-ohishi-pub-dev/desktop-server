@@ -12,13 +12,15 @@ import (
 )
 
 type HTTPServer struct {
-	grpcServer *GRPCServer
-	httpServer *http.Server
+	grpcServer      *GRPCServer
+	httpServer      *http.Server
+	progressService *ProgressService
 }
 
-func NewHTTPServer(grpcServer *GRPCServer) *HTTPServer {
+func NewHTTPServer(grpcServer *GRPCServer, progressService *ProgressService) *HTTPServer {
 	return &HTTPServer{
-		grpcServer: grpcServer,
+		grpcServer:      grpcServer,
+		progressService: progressService,
 	}
 }
 
@@ -36,7 +38,7 @@ func (s *HTTPServer) Start(addr string) error {
 
 	mux := http.NewServeMux()
 
-	// gRPC-Web endpoint
+	// gRPC-Web endpoint (includes ProgressService streaming)
 	mux.Handle("/api/", http.StripPrefix("/api", wrappedGrpc))
 
 	// Serve embedded frontend files

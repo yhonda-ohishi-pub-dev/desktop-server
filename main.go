@@ -111,8 +111,11 @@ func main() {
 		log.Println("ETC download functionality will not be available until etc_meisai_scraper.exe is available")
 	}
 
-	// Start gRPC server with DownloadService proxy
-	grpcServer := server.NewGRPCServer(scraperManager)
+	// Initialize progress service for gRPC streaming
+	progressService := server.NewProgressService()
+
+	// Start gRPC server with ProgressService and DownloadService proxy
+	grpcServer := server.NewGRPCServer(scraperManager, progressService)
 	go func() {
 		if err := grpcServer.Start(":50051"); err != nil {
 			log.Fatalf("Failed to start gRPC server: %v", err)
@@ -120,7 +123,7 @@ func main() {
 	}()
 
 	// Start HTTP + gRPC-Web proxy server
-	httpServer := server.NewHTTPServer(grpcServer)
+	httpServer := server.NewHTTPServer(grpcServer, progressService)
 	go func() {
 		if err := httpServer.Start(":8080"); err != nil {
 			log.Fatalf("Failed to start HTTP server: %v", err)

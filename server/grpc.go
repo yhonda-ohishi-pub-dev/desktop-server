@@ -11,6 +11,7 @@ import (
 	dtakoeventsregistry "github.com/yhonda-ohishi/dtako_events/pkg/registry"
 	dtakorowsregistry "github.com/yhonda-ohishi/dtako_rows/v3/pkg/registry"
 	downloadpb "github.com/yhonda-ohishi/etc_meisai_scraper/src/pb"
+	pb "github.com/yhonda-ohishi-pub-dev/desktop-server/proto"
 	"google.golang.org/grpc"
 )
 
@@ -18,7 +19,7 @@ type GRPCServer struct {
 	grpcServer *grpc.Server
 }
 
-func NewGRPCServer(scraperManager *etcscraper.Manager) *GRPCServer {
+func NewGRPCServer(scraperManager *etcscraper.Manager, progressService *ProgressService) *GRPCServer {
 	// Initialize gRPC server immediately
 	grpcSrv := grpc.NewServer()
 
@@ -39,8 +40,11 @@ func NewGRPCServer(scraperManager *etcscraper.Manager) *GRPCServer {
 		log.Printf("Warning: Failed to register dtako_events services: %v", err)
 	}
 
+	// Register ProgressService for gRPC streaming
+	pb.RegisterProgressServiceServer(grpcSrv, progressService)
+
 	// Register DownloadService proxy
-	downloadProxy := NewDownloadServiceProxy(scraperManager)
+	downloadProxy := NewDownloadServiceProxy(scraperManager, progressService)
 	downloadpb.RegisterDownloadServiceServer(grpcSrv, downloadProxy)
 
 	return srv

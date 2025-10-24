@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package desktop_server.v1;
+
+option go_package = "github.com/yhonda-ohishi-pub-dev/desktop-server/proto;proto";
+
+// 進捗通知サービス
+service ProgressService {
+  // ダウンロード進捗をストリーミング
+  rpc StreamDownloadProgress(StreamProgressRequest) returns (stream ProgressUpdate);
+}
+
+// 進捗ストリームリクエスト
+message StreamProgressRequest {
+  // 特定のジョブIDを指定（空の場合はすべての進捗を受信）
+  string job_id = 1;
+}
+
+// 進捗更新メッセージ
+message ProgressUpdate {
+  // 進捗タイプ
+  ProgressType type = 1;
+
+  // メッセージ
+  string message = 2;
+
+  // 現在のステップ
+  int32 current_step = 3;
+
+  // 総ステップ数
+  int32 total_steps = 4;
+
+  // 進捗率（0-100）
+  int32 percentage = 5;
+
+  // 関連するジョブID（ある場合）
+  string job_id = 6;
+
+  // タイムスタンプ
+  int64 timestamp = 7;
+}
+
+// 進捗タイプ
+enum ProgressType {
+  PROGRESS_TYPE_UNSPECIFIED = 0;
+  PROGRESS_TYPE_STARTED = 1;      // 開始
+  PROGRESS_TYPE_PROGRESS = 2;     // 進行中
+  PROGRESS_TYPE_COMPLETE = 3;     // 完了
+  PROGRESS_TYPE_ERROR = 4;        // エラー
+}

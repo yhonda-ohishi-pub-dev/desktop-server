@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	pb "github.com/yhonda-ohishi-pub-dev/desktop-server/proto"
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
 
 	downloadpb "github.com/yhonda-ohishi/etc_meisai_scraper/src/pb"
@@ -13,12 +14,14 @@ import (
 // DownloadServiceProxy proxies requests to etc_meisai_scraper's DownloadService
 type DownloadServiceProxy struct {
 	downloadpb.UnimplementedDownloadServiceServer
-	scraperManager *etcscraper.Manager
+	scraperManager  *etcscraper.Manager
+	progressService *ProgressService
 }
 
-func NewDownloadServiceProxy(scraperManager *etcscraper.Manager) *DownloadServiceProxy {
+func NewDownloadServiceProxy(scraperManager *etcscraper.Manager, progressService *ProgressService) *DownloadServiceProxy {
 	return &DownloadServiceProxy{
-		scraperManager: scraperManager,
+		scraperManager:  scraperManager,
+		progressService: progressService,
 	}
 }
 
@@ -65,22 +68,70 @@ func (p *DownloadServiceProxy) DownloadSync(ctx context.Context, req *downloadpb
 
 	log.Printf("Download job started with ID: %s", jobResp.JobId)
 
+	// Broadcast initial progress
+	p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+		Type:        pb.ProgressType_PROGRESS_TYPE_STARTED,
+		Message:     "ダウンロードを開始しました",
+		CurrentStep: 0,
+		TotalSteps:  int32(len(req.Accounts)),
+		Percentage:  0,
+		JobId:       jobResp.JobId,
+	})
+
 	// Run download and CSV processing in background
 	go func() {
 		// Poll for job completion
 		totalRecords, err := p.waitForJobCompletion(context.Background(), client, jobResp.JobId)
 		if err != nil {
 			log.Printf("Download job failed: %v", err)
+			p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+				Type:    pb.ProgressType_PROGRESS_TYPE_ERROR,
+				Message: fmt.Sprintf("ダウンロード失敗: %v", err),
+				JobId:   jobResp.JobId,
+			})
 			return
 		}
 
 		log.Printf("Download completed successfully, total records: %d", totalRecords)
+		p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+			Type:        pb.ProgressType_PROGRESS_TYPE_PROGRESS,
+			Message:     fmt.Sprintf("ダウンロード完了 (%d件)", totalRecords),
+			CurrentStep: int32(len(req.Accounts)),
+			TotalSteps:  int32(len(req.Accounts)),
+			Percentage:  100,
+			JobId:       jobResp.JobId,
+		})
 
 		// If mode is "db", process CSV and save to database
 		if req.Mode == "db" {
+			p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+				Type:    pb.ProgressType_PROGRESS_TYPE_PROGRESS,
+				Message: "データベースに保存中...",
+				JobId:   jobResp.JobId,
+			})
 			log.Printf("Processing downloaded CSV files and saving to database...")
 			saved, errors := p.processDownloadedCSVFiles(req.Accounts)
 			log.Printf("Database save completed: %d saved, %d errors", saved, errors)
+
+			if errors > 0 {
+				p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+					Type:    pb.ProgressType_PROGRESS_TYPE_COMPLETE,
+					Message: fmt.Sprintf("完了: %d件保存, %d件エラー", saved, errors),
+					JobId:   jobResp.JobId,
+				})
+			} else {
+				p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+					Type:    pb.ProgressType_PROGRESS_TYPE_COMPLETE,
+					Message: fmt.Sprintf("完了: %d件保存", saved),
+					JobId:   jobResp.JobId,
+				})
+			}
+		} else {
+			p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+				Type:    pb.ProgressType_PROGRESS_TYPE_COMPLETE,
+				Message: "ダウンロード完了",
+				JobId:   jobResp.JobId,
+			})
 		}
 	}()
 
