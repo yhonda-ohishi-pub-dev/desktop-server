@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	pb "github.com/yhonda-ohishi-pub-dev/desktop-server/proto"
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/systray"
 
@@ -85,6 +86,22 @@ func (p *DownloadServiceProxy) waitForJobCompletion(ctx context.Context, client 
 			}
 
 			log.Printf("Job %s status: %s, progress: %d/%d", jobID, status.Status, status.Progress, status.TotalRecords)
+
+			// Broadcast progress update
+			if status.Status == "processing" || status.Status == "running" {
+				percentage := int32(0)
+				if status.TotalRecords > 0 {
+					percentage = (status.Progress * 100) / status.TotalRecords
+				}
+				p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+					Type:        pb.ProgressType_PROGRESS_TYPE_PROGRESS,
+					Message:     fmt.Sprintf("ダウンロード中... (%d/%d)", status.Progress, status.TotalRecords),
+					CurrentStep: status.Progress,
+					TotalSteps:  status.TotalRecords,
+					Percentage:  percentage,
+					JobId:       jobID,
+				})
+			}
 
 			switch status.Status {
 			case "completed", "success":
