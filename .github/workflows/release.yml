@@ -22,39 +22,13 @@ jobs:
         with:
           go-version: '1.25.1'
 
-      - name: Install Protocol Buffers
+      - name: Install Buf CLI
         run: |
-          choco install protoc -y
-          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          choco install buf -y
 
-      - name: Generate Proto files
+      - name: Generate Proto files with Buf
         run: |
-          protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/database.proto
-
-      - name: Copy db_service proto files
-        shell: powershell
-        run: |
-          New-Item -ItemType Directory -Force -Path proto/db_service
-          $dbServicePath = Get-ChildItem -Path "$env:USERPROFILE/go/pkg/mod/github.com/yhonda-ohishi/db_service@*" -Directory | Select-Object -First 1
-          if ($dbServicePath) {
-            Copy-Item "$dbServicePath/src/proto/*.proto" -Destination proto/db_service/ -Force
-            Write-Host "Copied db_service proto files from $dbServicePath"
-          } else {
-            Write-Host "Warning: db_service proto files not found"
-          }
-
-      - name: Copy etc_meisai_scraper proto files
-        shell: powershell
-        run: |
-          New-Item -ItemType Directory -Force -Path proto/etc_meisai_scraper
-          $etcScraperPath = Get-ChildItem -Path "$env:USERPROFILE/go/pkg/mod/github.com/yhonda-ohishi/etc_meisai_scraper@*" -Directory | Select-Object -First 1
-          if ($etcScraperPath) {
-            Copy-Item "$etcScraperPath/src/proto/*.proto" -Destination proto/etc_meisai_scraper/ -Force
-            Write-Host "Copied etc_meisai_scraper proto files from $etcScraperPath"
-          } else {
-            Write-Host "Warning: etc_meisai_scraper proto files not found"
-          }
+          buf generate
 
       - name: Build etc_meisai_scraper binary
         shell: powershell
@@ -130,16 +104,18 @@ jobs:
 
             ## For Developers
 
-            **Protocol Buffers definitions:**
-            - `database.proto` - Desktop-server gRPC API
-            - `proto/db_service/*.proto` - db_service gRPC API (ETCMeisai, DTakoUriageKeihi, DTakoFerryRows, ETCMeisaiMapping)
-            - `proto/etc_meisai_scraper/*.proto` - etc_meisai_scraper gRPC API (DownloadService)
+            **Protocol Buffers (BSR):**
+            - `buf.build/yhonda-ohishi/desktop-server` - ProgressService (download progress streaming)
+            - `buf.build/yhonda-ohishi/db-service` - Database services
+            - `buf.build/yhonda-ohishi/dtako-rows` - DTako rows services
+            - `buf.build/yhonda-ohishi/dtako-events` - DTako events services
+            - `buf.build/yhonda-ohishi/etc-meisai-scraper` - ETC download service
 
             **Binaries:**
             - `desktop-server.exe` - Main application
             - `etc_meisai_scraper.exe` - ETC data scraper (optional, auto-started when needed)
 
-            Use the proto files to generate client code for your preferred language.
+            All proto definitions are available on Buf Schema Registry. Use `buf` CLI or BSR web interface to generate client code.
 
             ## What's Changed
 
@@ -149,8 +125,6 @@ jobs:
           files: |
             desktop-server.exe
             etc_meisai_scraper.exe
-            proto/database.proto
-            proto/db_service/*.proto
-            proto/etc_meisai_scraper/*.proto
+            proto/progress.proto
           draft: false
           prerelease: false

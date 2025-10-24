@@ -216,35 +216,39 @@ Desktop Server includes built-in auto-update functionality for both backend and 
 
 ```
 desktop-server/
-├── main.go                 # Application entry point
+├── main.go                   # Application entry point
 ├── proto/
-│   ├── database.proto      # Protocol Buffers definition
-│   ├── database.pb.go      # Generated Go code
-│   └── database_grpc.pb.go # Generated gRPC code
+│   ├── progress.proto        # ProgressService definition (gRPC streaming)
+│   ├── progress.pb.go        # Generated Go code
+│   └── progress_grpc.pb.go   # Generated gRPC code
 ├── server/
-│   ├── db.go               # Database connection layer
-│   ├── grpc.go             # gRPC server implementation
-│   └── http.go             # HTTP + gRPC-Web proxy
+│   ├── grpc.go               # gRPC server with service registry
+│   ├── http.go               # HTTP + gRPC-Web proxy
+│   ├── progress_service.go   # Progress streaming service
+│   └── download_proxy.go     # etc_meisai_scraper proxy
+├── internal/
+│   ├── etcdb/                # Database client for db_service
+│   └── etcscraper/           # etc_meisai_scraper manager
 ├── systray/
-│   └── tray.go             # System tray UI with auto-update
+│   └── tray.go               # System tray UI
 ├── updater/
-│   └── github.go           # GitHub Release auto-updater
-├── desktop-sv/             # Frontend (React + TypeScript)
-│   ├── src/
-│   ├── package.json
-│   └── vite.config.ts
+│   └── github.go             # Auto-updater
+├── buf.yaml                  # Buf configuration (BSR)
+├── buf.gen.yaml              # Buf code generation config
 ├── Makefile
 └── go.mod
 ```
 
-## API Endpoints
+## API Services (via BSR)
 
-### gRPC Services
+### desktop-server services
+- `ProgressService.StreamDownloadProgress`: Real-time download progress streaming
 
-- `QueryDatabase`: Execute SQL queries
-- `StreamQuery`: Stream query results
-- `GetTables`: Get list of database tables
-- `ExecuteSQL`: Execute SQL commands (INSERT, UPDATE, DELETE)
+### Proxied BSR services
+- `buf.build/yhonda-ohishi/db-service` - Database services (ETCMeisai, DTakoRows, etc.)
+- `buf.build/yhonda-ohishi/dtako-rows` - DTako rows services
+- `buf.build/yhonda-ohishi/dtako-events` - DTako events services
+- `buf.build/yhonda-ohishi/etc-meisai-scraper` - ETC download service
 
 ### HTTP Endpoints
 
