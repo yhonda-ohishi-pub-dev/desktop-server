@@ -166,8 +166,65 @@ func (p *DownloadServiceProxy) DownloadAsync(ctx context.Context, req *downloadp
 		}, nil
 	}
 
-	// Use the gRPC client directly
-	return client.GetDownloadService().DownloadAsync(ctx, req)
+	// Start download job
+	jobResp, err := client.GetDownloadService().DownloadAsync(ctx, req)
+	if err != nil {
+		return jobResp, err
+	}
+
+	// Broadcast initial progress
+	p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+		Type:        pb.ProgressType_PROGRESS_TYPE_STARTED,
+		Message:     "ダウンロードを開始しました",
+		CurrentStep: 0,
+		TotalSteps:  int32(len(req.Accounts)),
+		Percentage:  0,
+		JobId:       jobResp.JobId,
+	})
+
+	// Start background goroutine to poll progress and broadcast
+	go func() {
+		// Poll for job completion
+		totalRecords, err := p.waitForJobCompletion(context.Background(), client, jobResp.JobId)
+		if err != nil {
+			log.Printf("Download job failed: %v", err)
+			p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+				Type:    pb.ProgressType_PROGRESS_TYPE_ERROR,
+				Message: fmt.Sprintf("ダウンロード失敗: %v", err),
+				JobId:   jobResp.JobId,
+			})
+			return
+		}
+
+		log.Printf("Download completed successfully, total records: %d", totalRecords)
+		p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+			Type:        pb.ProgressType_PROGRESS_TYPE_PROGRESS,
+			Message:     fmt.Sprintf("ダウンロード完了 (%d件)", totalRecords),
+			CurrentStep: int32(len(req.Accounts)),
+			TotalSteps:  int32(len(req.Accounts)),
+			Percentage:  100,
+			JobId:       jobResp.JobId,
+		})
+
+		log.Println("Processing downloaded CSV files and saving to database...")
+		saved, errors := p.processDownloadedCSVFiles(req.Accounts)
+
+		if errors > 0 {
+			p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+				Type:    pb.ProgressType_PROGRESS_TYPE_ERROR,
+				Message: fmt.Sprintf("保存中にエラー: %d件保存、%d件エラー", saved, errors),
+				JobId:   jobResp.JobId,
+			})
+		} else {
+			p.progressService.BroadcastProgress(&pb.ProgressUpdate{
+				Type:    pb.ProgressType_PROGRESS_TYPE_COMPLETE,
+				Message: fmt.Sprintf("完了: %d件保存", saved),
+				JobId:   jobResp.JobId,
+			})
+		}
+	}()
+
+	return jobResp, nil
 }
 
 func (p *DownloadServiceProxy) GetJobStatus(ctx context.Context, req *downloadpb.GetJobStatusRequest) (*downloadpb.JobStatus, error) {
