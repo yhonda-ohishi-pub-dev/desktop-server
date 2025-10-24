@@ -32,10 +32,23 @@ func NewETCDBClient(address string) (*ETCDBClient, error) {
 
 // SaveETCRecord saves a single ETC record to database
 func (c *ETCDBClient) SaveETCRecord(ctx context.Context, record parser.ActualETCRecord) error {
-	// Parse and format exit date (required)
-	exitDate, err := parseDate(record.ExitDate)
-	if err != nil {
-		return fmt.Errorf("invalid exit date: %w", err)
+	// Parse exit date - fallback to entry date if exit date is empty
+	var exitDate time.Time
+	var err error
+
+	if record.ExitDate != "" {
+		exitDate, err = parseDate(record.ExitDate)
+		if err != nil {
+			return fmt.Errorf("invalid exit date: %w", err)
+		}
+	} else if record.EntryDate != "" {
+		// Fallback: use entry date if exit date is missing
+		exitDate, err = parseDate(record.EntryDate)
+		if err != nil {
+			return fmt.Errorf("invalid entry date (used as fallback): %w", err)
+		}
+	} else {
+		return fmt.Errorf("both exit date and entry date are empty")
 	}
 
 	// Format dates for db_service
