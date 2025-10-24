@@ -69,10 +69,11 @@ func (s *HTTPServer) Start(addr string) error {
 	}
 
 	s.httpServer = &http.Server{
-		Addr:         addr,
-		Handler:      mux,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
+		Addr:    addr,
+		Handler: mux,
+		// ReadTimeout: keep default (no timeout) for streaming
+		// WriteTimeout: 0 means no timeout - required for gRPC streaming
+		WriteTimeout: 0,
 		IdleTimeout:  60 * time.Second,
 	}
 
