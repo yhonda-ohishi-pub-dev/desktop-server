@@ -53,7 +53,11 @@ func (c *ETCDBClient) SaveETCRecord(ctx context.Context, record parser.ActualETC
 
 	// Format dates for db_service
 	// date_to: RFC3339形式推奨 (例: 2025-10-18T15:30:00Z)
-	exitDateTime := fmt.Sprintf("%sT%s:00Z", exitDate.Format("2006-01-02"), record.ExitTime)
+	exitTime := record.ExitTime
+	if exitTime == "" {
+		exitTime = "00:00" // Default time if missing
+	}
+	exitDateTime := fmt.Sprintf("%sT%s:00Z", exitDate.Format("2006-01-02"), exitTime)
 	// date_to_date: YYYY-MM-DD形式 (例: 2025-10-18)
 	exitDateOnly := exitDate.Format("2006-01-02")
 
@@ -74,13 +78,23 @@ func (c *ETCDBClient) SaveETCRecord(ctx context.Context, record parser.ActualETC
 		icFr = &record.EntryIC
 	}
 
+	// ic_to (出口IC) が空の場合はEntryICを使用、それも空なら"不明"
+	exitIC := record.ExitIC
+	if exitIC == "" {
+		if record.EntryIC != "" {
+			exitIC = record.EntryIC // Use EntryIC if ExitIC is empty
+		} else {
+			exitIC = "不明" // Default value if both are empty
+		}
+	}
+
 	req := &pb.Db_CreateETCMeisaiRequest{
 		EtcMeisai: &pb.Db_ETCMeisai{
 			DateFr:     dateFr,         // optional: 入口日時 (*string型)
 			DateTo:     exitDateTime,   // 必須: 出口日時
 			DateToDate: exitDateOnly,   // 必須: 出口日付のみ
 			IcFr:       icFr,           // optional: 入口IC (*string型、実データの22.3%が空)
-			IcTo:       record.ExitIC,  // 必須: 出口IC
+			IcTo:       exitIC,         // 必須: 出口IC (空の場合は"不明")
 			Price:      int32(record.ETCAmount), // 必須: ETC料金
 			Shashu:     int32(record.VehicleClass), // 必須: 車種
 			EtcNum:     record.CardNumber, // 必須: ETCカード番号
