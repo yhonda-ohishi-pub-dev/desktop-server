@@ -70,7 +70,7 @@ func getAccountsFromEnv() []string {
 }
 
 // waitForJobCompletion polls job status until completion
-func (p *DownloadServiceProxy) waitForJobCompletion(ctx context.Context, client *etcscraper.Client, jobID string) (int32, error) {
+func (p *DownloadServiceProxy) waitForJobCompletion(ctx context.Context, client *etcscraper.Client, jobID string, totalAccounts int) (int32, error) {
 	log.Printf("Waiting for job %s to complete...", jobID)
 
 	for {
@@ -85,20 +85,27 @@ func (p *DownloadServiceProxy) waitForJobCompletion(ctx context.Context, client 
 				return 0, fmt.Errorf("failed to get job status: %w", err)
 			}
 
-			log.Printf("Job %s status: %s, progress: %d/%d", jobID, status.Status, status.Progress, status.TotalRecords)
+			log.Printf("Job %s status: %s, progress: %d/%d (accounts: %d)", jobID, status.Status, status.Progress, status.TotalRecords, totalAccounts)
 
 			// Broadcast progress update
 			if status.Status == "processing" || status.Status == "running" {
-				percentage := int32(0)
-				if status.TotalRecords > 0 {
-					percentage = (status.Progress * 100) / status.TotalRecords
+				// Use status.Progress as percentage (0-100 from scraper)
+				// TotalSteps = number of accounts being processed
+				currentAccount := int32(0)
+				if status.Progress > 0 {
+					// Estimate which account we're on based on progress percentage
+					currentAccount = int32((int64(status.Progress) * int64(totalAccounts)) / 100)
+					if currentAccount > int32(totalAccounts) {
+						currentAccount = int32(totalAccounts)
+					}
 				}
+
 				p.progressService.BroadcastProgress(&pb.ProgressUpdate{
 					Type:        pb.ProgressType_PROGRESS_TYPE_PROGRESS,
-					Message:     fmt.Sprintf("ダウンロード中... (%d/%d)", status.Progress, status.TotalRecords),
-					CurrentStep: status.Progress,
-					TotalSteps:  status.TotalRecords,
-					Percentage:  percentage,
+					Message:     fmt.Sprintf("ダウンロード中... %d%%", status.Progress),
+					CurrentStep: currentAccount,
+					TotalSteps:  int32(totalAccounts),
+					Percentage:  status.Progress,
 					JobId:       jobID,
 				})
 			}

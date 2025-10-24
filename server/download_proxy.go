@@ -81,7 +81,7 @@ func (p *DownloadServiceProxy) DownloadSync(ctx context.Context, req *downloadpb
 	// Run download and CSV processing in background
 	go func() {
 		// Poll for job completion
-		totalRecords, err := p.waitForJobCompletion(context.Background(), client, jobResp.JobId)
+		totalRecords, err := p.waitForJobCompletion(context.Background(), client, jobResp.JobId, len(req.Accounts))
 		if err != nil {
 			log.Printf("Download job failed: %v", err)
 			p.progressService.BroadcastProgress(&pb.ProgressUpdate{
@@ -185,7 +185,7 @@ func (p *DownloadServiceProxy) DownloadAsync(ctx context.Context, req *downloadp
 	// Start background goroutine to poll progress and broadcast
 	go func() {
 		// Poll for job completion
-		totalRecords, err := p.waitForJobCompletion(context.Background(), client, jobResp.JobId)
+		totalRecords, err := p.waitForJobCompletion(context.Background(), client, jobResp.JobId, len(req.Accounts))
 		if err != nil {
 			log.Printf("Download job failed: %v", err)
 			p.progressService.BroadcastProgress(&pb.ProgressUpdate{
