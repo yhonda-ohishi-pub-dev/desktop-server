@@ -877,8 +877,8 @@ github.com/yhonda-ohishi/db_service v1.9.0 h1:brGJe7qDK6/nmiunRcsSdcEvWh6iD8Ecwr
 github.com/yhonda-ohishi/db_service v1.9.0/go.mod h1:CFI+05qMWM76WaNpUtzeak5HnvkcLfsEdkanlXVRZU8=
 github.com/yhonda-ohishi/dtako_events v1.4.0 h1:JBrpgFjrjj3qLiV3aDzmUWGaiC2ABSHewbAO3puDRJM=
 github.com/yhonda-ohishi/dtako_events v1.4.0/go.mod h1:tzElqqLev49oOEWFa6cdhW7yXKugJ0epbZ9Mu9JxBfQ=
-github.com/yhonda-ohishi/dtako_rows/v3 v3.3.4 h1:HNb76/+q0X0+Rp7T3b49ai4juvkksYINTcgNQN2AgqQ=
-github.com/yhonda-ohishi/dtako_rows/v3 v3.3.4/go.mod h1:fgvBAoDGAqhfUVmnKq7tFIcLi8iYeFew2Tl0u/X/CJc=
+github.com/yhonda-ohishi/dtako_rows/v3 v3.4.0 h1:d9aLEN/KUVMBsB0oeuU/7UJcA6p4vEdWqqWZ7DIAegA=
+github.com/yhonda-ohishi/dtako_rows/v3 v3.4.0/go.mod h1:fgvBAoDGAqhfUVmnKq7tFIcLi8iYeFew2Tl0u/X/CJc=
 github.com/yhonda-ohishi/etc_data_processor v1.0.0 h1:R2FVdOJCQYSfiCeOUK0H90YeAVJUMmubbPLdjQdpKF0=
 github.com/yhonda-ohishi/etc_data_processor v1.0.0/go.mod h1:I7bMD+IO4/bxjiVv/uu64bxCt8UYlsUPnQQS/Fqk460=
 github.com/yhonda-ohishi/etc_meisai_scraper v0.0.22 h1:3O9FxleKnqZGmQvz6oG/CiDNf305+JAc0H3VTZnlrCo=

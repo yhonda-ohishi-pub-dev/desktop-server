@@ -8,7 +8,7 @@ require (
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/microsoft/go-mssqldb v1.8.2
 	github.com/yhonda-ohishi/db_service v1.9.0
-	github.com/yhonda-ohishi/dtako_rows/v3 v3.3.4
+	github.com/yhonda-ohishi/dtako_rows/v3 v3.4.0
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 )
