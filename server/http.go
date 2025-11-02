@@ -9,6 +9,7 @@ import (
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/frontend"
 
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	"github.com/rs/cors"
 )
 
 type HTTPServer struct {
@@ -68,9 +69,18 @@ func (s *HTTPServer) Start(addr string) error {
 		mux.Handle("/", fileServer)
 	}
 
+	// Add CORS middleware
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:8080"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		ExposedHeaders:   []string{"Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding"},
+		AllowCredentials: true,
+	}).Handler(mux)
+
 	s.httpServer = &http.Server{
 		Addr:    addr,
-		Handler: mux,
+		Handler: corsHandler,
 		// ReadTimeout: keep default (no timeout) for streaming
 		// WriteTimeout: 0 means no timeout - required for gRPC streaming
 		WriteTimeout: 0,

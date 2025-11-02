@@ -11,8 +11,8 @@ import (
 	"time"
 
 	pb "github.com/yhonda-ohishi-pub-dev/desktop-server/proto"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/csvprocessor"
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
-	"github.com/yhonda-ohishi-pub-dev/desktop-server/systray"
 
 	downloadpb "github.com/yhonda-ohishi-pub-dev/etc_meisai_scraper/src/pb"
 )
@@ -30,8 +30,8 @@ func (p *DownloadServiceProxy) processAndSaveCSV(csvPath string, accounts []stri
 
 	log.Printf("Processing CSV file: %s for account: %s", csvPath, accountID)
 
-	// Use systray's ProcessCSVFile function
-	saved, errors, err := systray.ProcessCSVFile(csvPath, accountID)
+	// Process CSV file
+	saved, errors, err := csvprocessor.ProcessCSVFile(csvPath, accountID)
 	if err != nil {
 		log.Printf("Failed to process CSV: %v", err)
 		return 0, 1
@@ -132,7 +132,6 @@ func (p *DownloadServiceProxy) waitForJobCompletion(ctx context.Context, client 
 func (p *DownloadServiceProxy) processDownloadedCSVFiles(accounts []string) (saved int, errors int) {
 	log.Printf("Processing downloaded CSV files in downloads folder")
 
-	// Use systray's processDownloadedCSVFiles logic
 	// Find the most recent download folder and process CSV files
 	downloadDir := "downloads"
 	entries, err := os.ReadDir(downloadDir)
@@ -183,7 +182,7 @@ func (p *DownloadServiceProxy) processDownloadedCSVFiles(accounts []string) (sav
 
 		log.Printf("Processing CSV file: %s for account: %s", csvFile, accountID)
 
-		saved, errors, err := systray.ProcessCSVFile(csvFile, accountID)
+		saved, errors, err := csvprocessor.ProcessCSVFile(csvFile, accountID)
 		if err != nil {
 			log.Printf("Failed to process CSV file %s: %v", csvFile, err)
 			totalErrors++

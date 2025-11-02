@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -15,7 +14,6 @@ import (
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/process"
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/server"
-	"github.com/yhonda-ohishi-pub-dev/desktop-server/systray"
 
 	"github.com/joho/godotenv"
 )
@@ -66,6 +64,9 @@ func main() {
 		log.Println("Warning: .env file not found, using environment variables")
 	}
 
+	// Disable db_service GORM logging
+	os.Setenv("DB_LOG_LEVEL", "error")
+
 	// Debug: Log ETC environment variables
 	log.Printf("ETC_HEADLESS=%s", os.Getenv("ETC_HEADLESS"))
 	log.Printf("ETC_CORP_ACCOUNTS=%s", os.Getenv("ETC_CORP_ACCOUNTS"))
@@ -93,9 +94,6 @@ func main() {
 		return
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	// Setup signal handling
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
@@ -103,7 +101,6 @@ func main() {
 	// Initialize etc_meisai_scraper manager (auto-start enabled)
 	scraperManager := etcscraper.NewManager("localhost:50052", "", true)
 	defer scraperManager.Stop()
-	systray.SetScraperManager(scraperManager)
 
 	// Start etc_meisai_scraper immediately on startup
 	if err := scraperManager.Start(); err != nil {
@@ -133,11 +130,6 @@ func main() {
 	fmt.Println("Server started on:")
 	fmt.Println("  - gRPC: localhost:50051")
 	fmt.Println("  - HTTP: http://localhost:8080")
-
-	// Start systray
-	go systray.Run(ctx, func() {
-		cancel()
-	})
 
 	// Wait for shutdown signal
 	<-sigChan
