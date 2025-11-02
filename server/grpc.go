@@ -6,6 +6,7 @@ import (
 	"net"
 
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
+	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/reflector"
 
 	"github.com/yhonda-ohishi/db_service/src/registry"
 	dtakoeventsregistry "github.com/yhonda-ohishi/dtako_events/pkg/registry"
@@ -49,6 +50,14 @@ func NewGRPCServer(scraperManager *etcscraper.Manager, progressService *Progress
 
 	// Register reflection service for grpcurl and other tools
 	reflection.Register(grpcSrv)
+
+	// Log registered services and methods
+	if services, err := reflector.GetServices(grpcSrv); err == nil {
+		log.Println("Registered gRPC services:")
+		log.Print(reflector.FormatServices(services))
+	} else {
+		log.Printf("Warning: Failed to get service info: %v", err)
+	}
 
 	return &GRPCServer{grpcServer: grpcSrv}
 }
