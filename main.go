@@ -67,7 +67,19 @@ func main() {
 	// Disable db_service GORM logging
 	os.Setenv("DB_LOG_LEVEL", "error")
 
-	// Debug: Log ETC environment variables
+	// Get port configuration from environment variables
+	grpcPort := os.Getenv("GRPC_PORT")
+	if grpcPort == "" {
+		grpcPort = "50051"
+	}
+	httpPort := os.Getenv("HTTP_PORT")
+	if httpPort == "" {
+		httpPort = "8080"
+	}
+
+	// Debug: Log environment variables
+	log.Printf("GRPC_PORT=%s", grpcPort)
+	log.Printf("HTTP_PORT=%s", httpPort)
 	log.Printf("ETC_HEADLESS=%s", os.Getenv("ETC_HEADLESS"))
 	log.Printf("ETC_CORP_ACCOUNTS=%s", os.Getenv("ETC_CORP_ACCOUNTS"))
 
@@ -114,7 +126,7 @@ func main() {
 	// Start gRPC server with ProgressService and DownloadService proxy
 	grpcServer := server.NewGRPCServer(scraperManager, progressService)
 	go func() {
-		if err := grpcServer.Start(":50051"); err != nil {
+		if err := grpcServer.Start(":" + grpcPort); err != nil {
 			log.Fatalf("Failed to start gRPC server: %v", err)
 		}
 	}()
@@ -122,14 +134,14 @@ func main() {
 	// Start HTTP + gRPC-Web proxy server
 	httpServer := server.NewHTTPServer(grpcServer, progressService)
 	go func() {
-		if err := httpServer.Start(":8080"); err != nil {
+		if err := httpServer.Start(":" + httpPort); err != nil {
 			log.Fatalf("Failed to start HTTP server: %v", err)
 		}
 	}()
 
-	fmt.Println("Server started on:")
-	fmt.Println("  - gRPC: localhost:50051")
-	fmt.Println("  - HTTP: http://localhost:8080")
+	fmt.Printf("Server started on:\n")
+	fmt.Printf("  - gRPC: localhost:%s\n", grpcPort)
+	fmt.Printf("  - HTTP: http://localhost:%s\n", httpPort)
 
 	// Wait for shutdown signal
 	<-sigChan
