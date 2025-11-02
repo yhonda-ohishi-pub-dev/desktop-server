@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	pb "github.com/yhonda-ohishi/etc_meisai_scraper/src/pb"
+	pb "github.com/yhonda-ohishi-pub-dev/etc_meisai_scraper/src/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

@@ -14,7 +14,7 @@ import (
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/systray"
 
-	downloadpb "github.com/yhonda-ohishi/etc_meisai_scraper/src/pb"
+	downloadpb "github.com/yhonda-ohishi-pub-dev/etc_meisai_scraper/src/pb"
 )
 
 // processAndSaveCSV processes a CSV file and saves records to database
@@ -104,8 +104,8 @@ func (p *DownloadServiceProxy) waitForJobCompletion(ctx context.Context, client 
 					Type:        pb.ProgressType_PROGRESS_TYPE_PROGRESS,
 					Message:     fmt.Sprintf("ダウンロード中... %d%%", status.Progress),
 					CurrentStep: currentAccount,
-					TotalSteps:  int32(totalAccounts),
-					Percentage:  status.Progress,
+					TotalSteps:  int32(totalAccounts * 2),
+					Percentage:  status.Progress / 2, // Download phase is 0-50%
 					JobId:       jobID,
 				})
 			}

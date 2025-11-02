@@ -10,7 +10,7 @@ import (
 	"github.com/yhonda-ohishi/db_service/src/registry"
 	dtakoeventsregistry "github.com/yhonda-ohishi/dtako_events/pkg/registry"
 	dtakorowsregistry "github.com/yhonda-ohishi/dtako_rows/v3/pkg/registry"
-	downloadpb "github.com/yhonda-ohishi/etc_meisai_scraper/src/pb"
+	downloadpb "github.com/yhonda-ohishi-pub-dev/etc_meisai_scraper/src/pb"
 	pb "github.com/yhonda-ohishi-pub-dev/desktop-server/proto"
 	"google.golang.org/grpc"
 )
@@ -20,24 +20,23 @@ type GRPCServer struct {
 }
 
 func NewGRPCServer(scraperManager *etcscraper.Manager, progressService *ProgressService) *GRPCServer {
-	// Initialize gRPC server immediately
 	grpcSrv := grpc.NewServer()
 
-	srv := &GRPCServer{
-		grpcServer: grpcSrv,
+	// Register db_service (excluding DTakoEventsService and DTakoRowsService)
+	dbRegistry := registry.Register(grpcSrv, registry.WithExcludeServices("DTakoEventsService", "DTakoRowsService"))
+
+	// Register dtako_rows services (integrated mode with db_service)
+	if dbRegistry != nil && dbRegistry.DTakoRowsService != nil {
+		if err := dtakorowsregistry.Register(grpcSrv, dbRegistry.DTakoRowsService); err != nil {
+			log.Printf("Warning: Failed to register dtako_rows: %v", err)
+		}
 	}
 
-	// Register all db_service services automatically (excluding DTakoRowsService and DTakoEventsService)
-	registry.Register(grpcSrv, registry.WithExcludeServices("DTakoRowsService", "DTakoEventsService"))
-
-	// Register dtako_rows services automatically
-	if err := dtakorowsregistry.Register(grpcSrv); err != nil {
-		log.Printf("Warning: Failed to register dtako_rows services: %v", err)
-	}
-
-	// Register dtako_events services automatically
-	if err := dtakoeventsregistry.Register(grpcSrv); err != nil {
-		log.Printf("Warning: Failed to register dtako_events services: %v", err)
+	// Register dtako_events services (integrated mode with db_service)
+	if dbRegistry != nil && dbRegistry.DTakoEventsService != nil {
+		if err := dtakoeventsregistry.Register(grpcSrv, dbRegistry.DTakoEventsService); err != nil {
+			log.Printf("Warning: Failed to register dtako_events: %v", err)
+		}
 	}
 
 	// Register ProgressService for gRPC streaming
@@ -47,7 +46,7 @@ func NewGRPCServer(scraperManager *etcscraper.Manager, progressService *Progress
 	downloadProxy := NewDownloadServiceProxy(scraperManager, progressService)
 	downloadpb.RegisterDownloadServiceServer(grpcSrv, downloadProxy)
 
-	return srv
+	return &GRPCServer{grpcServer: grpcSrv}
 }
 
 func (s *GRPCServer) Start(addr string) error {
@@ -55,7 +54,6 @@ func (s *GRPCServer) Start(addr string) error {
 	if err != nil {
 		return fmt.Errorf("failed to listen: %w", err)
 	}
-
 	fmt.Printf("gRPC server listening on %s\n", addr)
 	return s.grpcServer.Serve(lis)
 }

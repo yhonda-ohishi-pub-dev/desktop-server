@@ -8,7 +8,7 @@ import (
 	pb "github.com/yhonda-ohishi-pub-dev/desktop-server/proto"
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
 
-	downloadpb "github.com/yhonda-ohishi/etc_meisai_scraper/src/pb"
+	downloadpb "github.com/yhonda-ohishi-pub-dev/etc_meisai_scraper/src/pb"
 )
 
 // DownloadServiceProxy proxies requests to etc_meisai_scraper's DownloadService
@@ -73,7 +73,7 @@ func (p *DownloadServiceProxy) DownloadSync(ctx context.Context, req *downloadpb
 		Type:        pb.ProgressType_PROGRESS_TYPE_STARTED,
 		Message:     "ダウンロードを開始しました",
 		CurrentStep: 0,
-		TotalSteps:  int32(len(req.Accounts)),
+		TotalSteps:  int32(len(req.Accounts) * 2), // Download + Save phases
 		Percentage:  0,
 		JobId:       jobResp.JobId,
 	})
@@ -182,7 +182,7 @@ func (p *DownloadServiceProxy) DownloadAsync(ctx context.Context, req *downloadp
 		Type:        pb.ProgressType_PROGRESS_TYPE_STARTED,
 		Message:     "ダウンロードを開始しました",
 		CurrentStep: 0,
-		TotalSteps:  int32(len(req.Accounts)),
+		TotalSteps:  int32(len(req.Accounts) * 2), // Download + Save phases
 		Percentage:  0,
 		JobId:       jobResp.JobId,
 	})
