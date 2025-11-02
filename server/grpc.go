@@ -13,6 +13,7 @@ import (
 	downloadpb "github.com/yhonda-ohishi-pub-dev/etc_meisai_scraper/src/pb"
 	pb "github.com/yhonda-ohishi-pub-dev/desktop-server/proto"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 type GRPCServer struct {
@@ -45,6 +46,9 @@ func NewGRPCServer(scraperManager *etcscraper.Manager, progressService *Progress
 	// Register DownloadService proxy
 	downloadProxy := NewDownloadServiceProxy(scraperManager, progressService)
 	downloadpb.RegisterDownloadServiceServer(grpcSrv, downloadProxy)
+
+	// Register reflection service for grpcurl and other tools
+	reflection.Register(grpcSrv)
 
 	return &GRPCServer{grpcServer: grpcSrv}
 }
