@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/frontend"
-	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/process"
 	"github.com/yhonda-ohishi-pub-dev/desktop-server/server"
 
@@ -80,8 +79,6 @@ func main() {
 	// Debug: Log environment variables
 	log.Printf("GRPC_PORT=%s", grpcPort)
 	log.Printf("HTTP_PORT=%s", httpPort)
-	log.Printf("ETC_HEADLESS=%s", os.Getenv("ETC_HEADLESS"))
-	log.Printf("ETC_CORP_ACCOUNTS=%s", os.Getenv("ETC_CORP_ACCOUNTS"))
 
 	// Parse command line flags
 	updateFrontend := flag.Bool("update", false, "Force download latest frontend")
@@ -110,21 +107,11 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
-	// Initialize etc_meisai_scraper manager (auto-start enabled)
-	scraperManager := etcscraper.NewManager("localhost:50052", "", true)
-	defer scraperManager.Stop()
-
-	// Start etc_meisai_scraper immediately on startup
-	if err := scraperManager.Start(); err != nil {
-		log.Printf("Warning: Failed to start etc_meisai_scraper: %v", err)
-		log.Println("ETC download functionality will not be available until etc_meisai_scraper.exe is available")
-	}
-
 	// Initialize progress service for gRPC streaming
 	progressService := server.NewProgressService()
 
-	// Start gRPC server with ProgressService and DownloadService proxy
-	grpcServer := server.NewGRPCServer(scraperManager, progressService)
+	// Start gRPC server with ProgressService
+	grpcServer := server.NewGRPCServer(progressService)
 	go func() {
 		if err := grpcServer.Start(":" + grpcPort); err != nil {
 			log.Fatalf("Failed to start gRPC server: %v", err)

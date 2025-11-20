@@ -12,10 +12,7 @@ require (
 	google.golang.org/protobuf v1.36.10
 )
 
-require (
-	github.com/yhonda-ohishi/dtako_events v1.6.1
-	github.com/yhonda-ohishi/etc_data_processor v1.0.0
-)
+require github.com/yhonda-ohishi/dtako_events v1.6.1
 
 require (
 	github.com/google/uuid v1.6.0 // indirect
@@ -35,7 +32,6 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/rs/cors v1.7.0
-	github.com/yhonda-ohishi-pub-dev/etc_meisai_scraper v0.0.31
 	golang.org/x/crypto v0.43.0 // indirect
 	golang.org/x/net v0.46.0 // indirect
 	golang.org/x/sys v0.37.0 // indirect

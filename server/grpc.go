@@ -5,13 +5,9 @@ import (
 	"log"
 	"net"
 
-	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/etcscraper"
-	"github.com/yhonda-ohishi-pub-dev/desktop-server/internal/reflector"
-
 	"github.com/yhonda-ohishi/db_service/src/registry"
 	dtakoeventsregistry "github.com/yhonda-ohishi/dtako_events/pkg/registry"
 	dtakorowsregistry "github.com/yhonda-ohishi/dtako_rows/v3/pkg/registry"
-	downloadpb "github.com/yhonda-ohishi-pub-dev/etc_meisai_scraper/src/pb"
 	pb "github.com/yhonda-ohishi-pub-dev/desktop-server/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -21,7 +17,7 @@ type GRPCServer struct {
 	grpcServer *grpc.Server
 }
 
-func NewGRPCServer(scraperManager *etcscraper.Manager, progressService *ProgressService) *GRPCServer {
+func NewGRPCServer(progressService *ProgressService) *GRPCServer {
 	grpcSrv := grpc.NewServer()
 
 	// Register db_service (excluding DTakoEventsService and DTakoRowsService)
@@ -44,19 +40,14 @@ func NewGRPCServer(scraperManager *etcscraper.Manager, progressService *Progress
 	// Register ProgressService for gRPC streaming
 	pb.RegisterProgressServiceServer(grpcSrv, progressService)
 
-	// Register DownloadService proxy
-	downloadProxy := NewDownloadServiceProxy(scraperManager, progressService)
-	downloadpb.RegisterDownloadServiceServer(grpcSrv, downloadProxy)
-
 	// Register reflection service for grpcurl and other tools
 	reflection.Register(grpcSrv)
 
-	// Log registered services and methods
-	if services, err := reflector.GetServices(grpcSrv); err == nil {
-		log.Println("Registered gRPC services:")
-		log.Print(reflector.FormatServices(services))
-	} else {
-		log.Printf("Warning: Failed to get service info: %v", err)
+	// Log registered services (using simple ServiceInfo from gRPC server)
+	serviceInfo := grpcSrv.GetServiceInfo()
+	log.Println("Registered gRPC services:")
+	for serviceName := range serviceInfo {
+		log.Printf("  - %s", serviceName)
 	}
 
 	return &GRPCServer{grpcServer: grpcSrv}

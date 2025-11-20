@@ -23,7 +23,8 @@
       "Bash(go list:*)",
       "Read(//c/Users/mtama/go/pkg/mod/github.com/**)",
       "Bash(go get:*)",
-      "Bash(go run:*)"
+      "Bash(go run:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
